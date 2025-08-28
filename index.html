@@ -1,0 +1,5445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Palette</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      padding: 20px 0;
+      margin: 0;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    html {
+      margin: 0;
+      padding: 0;
+    }
+    
+    /* Center the main title */
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 48px;
+      font-weight: bold;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    .palette {
+      margin-bottom: 50px;
+    }
+    .palette h2 {
+      margin: 0;
+      display: block;
+      line-height: 1.2;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 4px 8px;
+      border-radius: 6px;
+      user-select: none;
+    }
+    
+    .palette h2:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+    
+    .palette-name-input {
+      font-size: inherit !important;
+      font-weight: inherit !important;
+      font-family: inherit !important;
+      background: rgba(255, 255, 255, 0.15) !important;
+      border: 2px solid rgba(255, 255, 255, 0.6) !important;
+      border-radius: 8px !important;
+      color: white !important;
+      padding: 4px 8px !important;
+      margin: 0 !important;
+      outline: none !important;
+      min-width: 100px !important;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    .palette-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      margin: 15px 0 10px 0;
+      background: transparent;
+      position: relative;
+      justify-content: center;
+    }
+    .sort-controls {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      margin-right: 20px;
+      position: relative;
+      background: transparent;
+      z-index: 1;
+    }
+    
+    .sort-bracket {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+    }
+    
+
+    
+    .sort-label {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0 8px;
+      white-space: nowrap;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    .sort-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    .sort-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-1px) scale(1.05);
+    }
+    
+
+    
+    .sort-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-1px) scale(1.05);
+    }
+    
+
+    
+    .sort-tooltip {
+      position: absolute;
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .sort-tooltip.visible {
+      opacity: 1;
+    }
+    
+    /* Delete button styles - mirroring sort button */
+    .delete-controls {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      margin-right: 20px;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      background: transparent;
+      z-index: 1;
+    }
+    
+    /* Lock button styles - positioned to the left of delete button */
+    .lock-controls {
+      display: inline-flex;
+      flex-direction: row;
+      align-items: center;
+      margin-right: 15px;
+      position: relative;
+      transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      background: transparent;
+      z-index: 1;
+    }
+    
+    .lock-main-btn {
+      height: 36px;
+      width: 36px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 18px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      backdrop-filter: blur(4px);
+      /* Debug: make sure button is visible */
+      position: relative;
+      z-index: 10;
+    }
+    
+    .lock-main-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .lock-main-btn.locked {
+      background: rgba(76, 175, 80, 0.3);
+      border-color: rgba(76, 175, 80, 0.6);
+      color: #4CAF50;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .lock-main-btn.locked:hover {
+      background: rgba(76, 175, 80, 0.4);
+      border-color: rgba(76, 175, 80, 0.8);
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    /* Disabled state for toolbar buttons when palette is locked */
+    .toolbar-btn:disabled,
+    .add-swatch-toolbar:disabled,
+    .randomize-all-toolbar:disabled,
+    .copy-palette-toolbar:disabled,
+    .delete-main-btn:disabled,
+    .sort-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.4);
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .toolbar-btn:disabled:hover,
+    .add-swatch-toolbar:disabled:hover,
+    .randomize-all-toolbar:disabled:hover,
+    .copy-palette-toolbar:disabled:hover,
+    .delete-main-btn:disabled:hover,
+    .sort-btn:disabled:hover {
+      background: rgba(255, 255, 255, 0.05);
+      transform: none;
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: none;
+    }
+    
+
+    
+
+    
+    .new-palette-controls {
+      margin: 20px 0 40px 0;
+      text-align: center;
+    }
+    
+    .new-palette-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 32px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    .new-palette-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .new-palette-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    /* Import palette button styling */
+    .import-palette-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(4px);
+      display: block;
+      margin: 20px auto 0 auto;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    .import-palette-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+    
+    .import-palette-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    }
+    
+    .palettes-container {
+      margin-top: 20px;
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
+      padding: 0 20px;
+    }
+    
+    /* Import Modal Styles */
+    .import-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+    }
+    
+    .import-modal-content {
+      background: rgba(30, 30, 30, 0.95);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      margin: 5% auto;
+      padding: 0;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      animation: modalSlideIn 0.3s ease-out;
+    }
+    
+    @keyframes modalSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+    
+    .import-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 25px 15px 25px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .import-modal-header h3 {
+      margin: 0;
+      color: white;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    
+    .import-modal-close {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+    
+    .import-modal-close:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+    }
+    
+    .import-modal-body {
+      padding: 20px 25px;
+    }
+    
+    .import-modal-body p {
+      margin: 0 0 15px 0;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    
+    #import-colors-input {
+      width: 100%;
+      min-height: 120px;
+      padding: 15px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.4;
+      resize: vertical;
+      box-sizing: border-box;
+      transition: all 0.2s ease;
+    }
+    
+    #import-colors-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.6);
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    }
+    
+    #import-colors-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+    
+    .import-modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 15px;
+      padding: 15px 25px 25px 25px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+    .import-modal-cancel,
+    .import-modal-submit {
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      min-width: 100px;
+    }
+    
+    .import-modal-cancel {
+      background: rgba(255, 255, 255, 0.1);
+      color: rgba(255, 255, 255, 0.8);
+      border-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    .import-modal-cancel:hover {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border-color: rgba(255, 255, 255, 0.5);
+      transform: translateY(-1px);
+    }
+    
+    .import-modal-submit {
+      background: rgba(76, 175, 80, 0.8);
+      color: white;
+      border-color: rgba(76, 175, 80, 0.8);
+    }
+    
+    .import-modal-submit:hover {
+      background: rgba(76, 175, 80, 1);
+      border-color: rgba(76, 175, 80, 1);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .swatches {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 10px;
+      transition: gap 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      position: relative;
+      min-height: 200px; /* Ensure consistent height for button positioning */
+      will-change: contents;
+      padding-top: 20px;
+      justify-content: center;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    }
+    
+    /* Hide horizontal scrollbar for all browsers */
+    .swatches::-webkit-scrollbar {
+      display: none;
+    }
+    
+    .swatches {
+      -ms-overflow-style: none;  /* Internet Explorer 10+ */
+      scrollbar-width: none;  /* Firefox */
+    }
+    .swatch {
+      min-width: 80px;
+      max-width: 160px;
+      width: 160px;
+      height: 160px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+      padding: 8px 5px;
+      box-sizing: border-box;
+      cursor: pointer;
+      will-change: transform, width;
+      position: relative;
+      transform-origin: center;
+      flex-shrink: 1;
+      flex-basis: 160px;
+      /* Allow text selection within the swatch area */
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+      
+      /* CSS custom properties for color data */
+      --hex-color: '';
+      --rgb-color: '';
+      --hsv-color: '';
+      /* CSS custom properties for responsive text sizing */
+      --swatch-width: 160px;
+      --font-size-base: 12px;
+      --font-size-small: 8px;
+      
+      /* Prevent flash of incorrect sizing during initial load */
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    /* Show swatches once they're properly sized */
+    .swatch.sized {
+      opacity: 1;
+    }
+    
+    /* RGB and HSV label styling */
+    .swatch .rgb-label, .swatch .rgb-label.show {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      display: inline-block;
+      line-height: 1.2;
+      margin-bottom: 2px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      text-align: center;
+      transition: all 0.2s ease;
+      user-select: none;
+      /* Responsive text sizing to prevent wrapping */
+      white-space: nowrap;
+      overflow: visible;
+      /* Responsive font sizing based on swatch width */
+      font-size: clamp(var(--font-size-small), calc(var(--swatch-width) * 0.075), var(--font-size-base));
+    }
+    
+    .swatch .rgb-label:hover {
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+      /* Ensure no movement during hover */
+      transform: translateX(-50%);
+    }
+    
+    .swatch .rgb-label:hover::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% + 8px);
+      height: calc(100% + 4px);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      z-index: -1;
+    }
+    
+    .swatch .hsv-label, .swatch .hsv-label.show {
+      color: rgba(255, 255, 255, 0.9);
+      font-weight: bold;
+      text-align: center;
+      cursor: pointer;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      display: inline-block;
+      line-height: 1.2;
+      margin-bottom: 2px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      text-align: center;
+      transition: all 0.2s ease;
+      user-select: none;
+      /* Responsive text sizing to prevent wrapping */
+      white-space: nowrap;
+      overflow: visible;
+      /* Responsive font sizing based on swatch width */
+      font-size: clamp(var(--font-size-small), calc(var(--swatch-width) * 0.075), var(--font-size-base));
+    }
+    
+    .swatch .hsv-label:hover {
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+      /* Ensure no movement during hover */
+      transform: translateX(-50%);
+    }
+    
+    .swatch .hsv-label:hover::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% + 8px);
+      height: calc(100% + 4px);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      z-index: -1;
+    }
+    
+    /* Hex label styling */
+    .swatch .label, .swatch .hex-label.show {
+      color: #fff;
+      font-weight: bold;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      display: inline-block;
+      line-height: 1.2;
+      margin-bottom: 0;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: auto;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+      /* Responsive text sizing to prevent wrapping */
+      white-space: nowrap;
+      overflow: visible;
+      /* Responsive font sizing based on swatch width */
+      font-size: clamp(var(--font-size-small), calc(var(--swatch-width) * 0.075), var(--font-size-base));
+    }
+    
+    .swatch .label:hover {
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+      /* Ensure no movement during hover */
+      transform: translateX(-50%);
+    }
+    
+    .swatch .label:hover::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% + 8px);
+      height: calc(100% + 4px);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      z-index: -1;
+    }
+    
+
+    
+    .swatch:hover {
+      outline: 4px solid rgba(255, 255, 255, 0.9);
+      outline-offset: 0;
+      transition: outline 0.15s ease-in;
+    }
+    .swatch.selected {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.8);
+      z-index: 10;
+      transition: transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .swatch.swapping {
+      pointer-events: none;
+    }
+    .swatch.moving {
+      transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      z-index: 15;
+      pointer-events: none;
+    }
+    
+    /* Ensure selected blocks have highest z-index when moving */
+    .swatch.selected.moving {
+      z-index: 999;
+    }
+    
+    .swatch.selected.swapping {
+      z-index: 999;
+    }
+    
+    /* Additional responsive text sizing for very small swatches */
+    .swatch[style*="width: 80px"] .rgb-label,
+    .swatch[style*="width: 80px"] .hsv-label,
+    .swatch[style*="width: 80px"] .label {
+      font-size: 8px !important;
+      line-height: 1.1;
+    }
+    
+    .swatch[style*="width: 90px"] .rgb-label,
+    .swatch[style*="width: 90px"] .hsv-label,
+    .swatch[style*="width: 90px"] .label {
+      font-size: 9px !important;
+      line-height: 1.1;
+    }
+    
+    .swatch[style*="width: 100px"] .rgb-label,
+    .swatch[style*="width: 100px"] .hsv-label,
+    .swatch[style*="width: 100px"] .label {
+      font-size: 10px !important;
+      line-height: 1.1;
+    }
+    
+    /* Ensure text never wraps and is always truncated if needed */
+    .swatch .rgb-label,
+    .swatch .hsv-label,
+    .swatch .label {
+      max-width: calc(100% - 16px);
+      padding: 0 8px;
+      box-sizing: border-box;
+    }
+    
+    .move-button {
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+      flex-shrink: 0;
+      opacity: 0;
+      transform: scale(0);
+      position: absolute;
+      z-index: 30;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    .move-button.visible {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+    .move-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translate(-50%, -50%) scale(1.15);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+
+    
+    /* Standard toolbar button base styling */
+    .toolbar-btn {
+      height: 36px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: bold;
+      border-radius: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      backdrop-filter: blur(4px);
+    }
+    
+    .toolbar-btn:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Specific styling for add color button */
+    .add-swatch-toolbar {
+      height: 36px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.8);
+      font-weight: bold;
+      border-radius: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      backdrop-filter: blur(4px);
+    }
+    
+    .add-swatch-toolbar:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .add-swatch-toolbar:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.4);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .add-swatch-toolbar:disabled:hover {
+      background: rgba(255, 255, 255, 0.05);
+      transform: none;
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: none;
+    }
+    
+    /* Randomize all button styling */
+    .randomize-all-toolbar {
+      height: 36px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      backdrop-filter: blur(4px);
+    }
+    
+    .randomize-all-toolbar:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Copy palette button styling */
+    .copy-palette-toolbar {
+      height: 36px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      backdrop-filter: blur(4px);
+    }
+    
+    .copy-palette-toolbar:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    /* Specific styling for delete button - keeps red color but uses standard sizing */
+    .delete-main-btn {
+      height: 36px;
+      width: 100px; /* Fixed width to prevent resizing when text changes */
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border-radius: 18px;
+      border: 2px solid rgba(255, 100, 100, 0.4);
+      background: rgba(255, 100, 100, 0.2);
+      color: #ffcccc;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 14px;
+      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      backdrop-filter: blur(4px);
+    }
+    
+    .delete-main-btn:hover {
+      background: rgba(255, 100, 100, 0.3);
+      border-color: rgba(255, 100, 100, 0.6);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 15px rgba(255, 100, 100, 0.3);
+    }
+    
+    .delete-main-btn.expanded {
+      background: rgba(255, 100, 100, 0.4);
+      border-color: rgba(255, 100, 100, 0.8);
+      box-shadow: 0 4px 15px rgba(255, 100, 100, 0.4);
+    }
+    
+    .delete-main-btn.confirming {
+      background: rgba(255, 50, 50, 0.4);
+      border-color: rgba(255, 50, 50, 0.8);
+      color: #ffffff;
+      animation: pulse 0.5s ease-in-out;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .swap-button {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 37px;
+      height: 37px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid rgba(0, 0, 0, 0.3);
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+      font-size: 18px;
+      font-weight: bold;
+      opacity: 0;
+      transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      z-index: 25;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+    
+    .swap-button.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    
+    .swap-button:hover {
+      background: rgba(255, 255, 255, 1);
+      border-color: rgba(0, 0, 0, 0.5);
+      transform: translate(-50%, -50%) scale(1.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    /* Hover controls for swatches */
+    .swatch-controls {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      right: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      pointer-events: none;
+      z-index: 30;
+    }
+
+    .swatch:hover .swatch-controls {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Lock button always visible when locked - even without hover */
+    .swatch[data-locked="true"] .swatch-controls .lock {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
+    /* Make swatch controls visible when locked so lock button can be seen */
+    .swatch[data-locked="true"] .swatch-controls {
+      opacity: 1 !important;
+      pointer-events: auto !important;
+    }
+
+    /* Hide delete and randomize buttons when swatch is locked */
+    .swatch[data-locked="true"] .swatch-controls .delete,
+    .swatch[data-locked="true"] .swatch-controls .randomize {
+      display: none !important;
+    }
+
+    /* Enhanced frosted glass effect */
+    .swatch-control-btn {
+      position: relative;
+      overflow: hidden;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+    }
+
+
+
+    .swatch-control-btn {
+      width: auto;
+      height: auto;
+      background: none;
+      border: none;
+      border-radius: 0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      transition: all 0.2s ease;
+      backdrop-filter: none;
+      box-shadow: none;
+      padding: 4px;
+    }
+
+    .swatch-control-btn:hover {
+      background: none;
+      border-color: transparent;
+      transform: none;
+      box-shadow: none;
+      opacity: 0.8;
+    }
+
+    .swatch-control-btn.delete {
+      background: none;
+      border-color: transparent;
+    }
+
+    .swatch-control-btn.delete:hover {
+      background: none;
+      border-color: transparent;
+    }
+
+    .swatch-control-btn.lock {
+      background: none;
+      border-color: transparent;
+    }
+
+    .swatch-control-btn.lock:hover {
+      background: none;
+      border-color: transparent;
+    }
+
+    .swatch-control-btn.lock.locked {
+      background: none;
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .swatch-control-btn.lock.locked:hover {
+      background: none;
+      border-color: transparent;
+      box-shadow: none;
+    }
+
+    .swatch-control-btn.randomize {
+      background: none;
+      border-color: transparent;
+    }
+
+    .swatch-control-btn.randomize:hover {
+      background: none;
+      border-color: transparent;
+    }
+
+    /* Position buttons in specific corners and center */
+    .swatch-control-btn.delete {
+      position: absolute;
+      left: 0;
+      top: 0;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    .swatch-control-btn.lock {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
+    }
+
+    .swatch-control-btn.randomize {
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+    
+    @keyframes swap1 {
+      to {
+        transform: var(--swap-delta);
+      }
+    }
+    
+    @keyframes swap2 {
+      to {
+        transform: var(--swap-delta-reverse);
+      }
+    }
+    .label {
+      font-size: 12px;
+      text-shadow: 0 1px 2px #000;
+    }
+
+    /* Format Panel */
+    .format-panel {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 0;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      backdrop-filter: blur(4px);
+      width: 280px;
+    }
+    
+    .format-panel .format-label {
+      margin-left: 16px;
+      margin-right: 20px;
+    }
+    
+    .format-panel .toggle-buttons {
+      margin-right: 16px;
+    }
+
+    .toggle-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .toggle-button {
+      padding: 6px 12px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 16px;
+      color: #fff;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 12px;
+      font-weight: 500;
+      min-width: 50px;
+      text-align: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .toggle-button:hover {
+      background: rgba(255, 255, 255, 0.2);
+      border-color: rgba(255, 255, 255, 0.6);
+      transform: translateY(-1px);
+    }
+
+    .toggle-button.active {
+      background: #4CAF50;
+      border-color: #4CAF50;
+      box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+    }
+    
+    .similarity-panel {
+      position: fixed;
+      top: 90px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 15px 0;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      z-index: 1000;
+      display: block;
+      width: 380px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    
+    .similarity-panel .panel-header {
+      margin: 0;
+    }
+    
+    .similarity-panel input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    .similarity-panel input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+    
+    .format-label,
+    .randomness-label {
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      text-align: left;
+      padding: 8px 0;
+      white-space: nowrap;
+    }
+    
+    /* Panel Header Styling */
+    .panel-header {
+      text-align: center;
+      margin-bottom: 15px;
+      padding: 0 20px;
+    }
+    
+    .panel-title {
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0px 0 8px 0;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      margin-bottom: 5px;
+    }
+    
+    /* Settings Grid Styling */
+    .settings-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 0 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+    
+    .setting-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-height: 28px;
+    }
+    
+    .setting-item label {
+      color: white;
+      font-size: 12px;
+      font-weight: 500;
+      min-width: 90px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    
+    .setting-item input[type="range"] {
+      flex: 1;
+      min-width: 100px;
+      margin: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    
+    /* Range Slider Styles */
+    .range-slider-container {
+      position: relative;
+      flex: 1;
+      min-width: 100px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      --min-pos: 20%;
+      --max-pos: 80%;
+    }
+    
+    .range-slider-track {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+    
+    .range-slider-min,
+    .range-slider-max {
+      position: absolute;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 4px;
+      background: transparent;
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      pointer-events: none;
+    }
+    
+    .range-slider-min::-webkit-slider-thumb,
+    .range-slider-max::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      border: 2px solid #333;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      pointer-events: auto;
+      z-index: 2;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    
+    .range-slider-min::-webkit-slider-thumb:hover,
+    .range-slider-max::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Visual feedback for linked sliders */
+    .range-slider-container.at-min-gap .range-slider-min::-webkit-slider-thumb,
+    .range-slider-container.at-min-gap .range-slider-max::-webkit-slider-thumb {
+      background: #ffff00;
+      border-color: #ff8800;
+      animation: pulse 1s ease-in-out infinite alternate;
+    }
+    
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.05); }
+    }
+    
+    .range-slider-min::-moz-range-thumb,
+    .range-slider-max::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      cursor: pointer;
+      border: 2px solid #333;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      pointer-events: auto;
+      z-index: 2;
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    
+    .range-slider-min::-moz-range-thumb:hover,
+    .range-slider-max::-moz-range-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    }
+    
+    /* Visual feedback for linked sliders (Firefox) */
+    .range-slider-container.at-min-gap .range-slider-min::-moz-range-thumb,
+    .range-slider-container.at-min-gap .range-slider-max::-moz-range-thumb {
+      background: #ffff00;
+      border-color: #ff8800;
+      animation: pulse 1s ease-in-out infinite alternate;
+    }
+    
+    .range-slider-min::-webkit-slider-runnable-track,
+    .range-slider-max::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 4px;
+      background: transparent;
+      border: none;
+      border-radius: 2px;
+    }
+    
+    .range-slider-min::-moz-range-track,
+    .range-slider-max::-moz-range-track {
+      width: 100%;
+      height: 4px;
+      background: transparent;
+      border: none;
+      border-radius: 2px;
+    }
+    
+    /* Highlight the range between min and max */
+    .range-slider-container::after {
+      content: '';
+      position: absolute;
+      left: var(--min-pos, 20%);
+      right: calc(100% - var(--max-pos, 80%));
+      height: 4px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 1;
+      transition: left 0.1s ease, right 0.1s ease;
+    }
+    
+    /* Visual feedback when sliders are at minimum gap */
+    .range-slider-container.at-min-gap::after {
+      background: rgba(255, 255, 0, 0.9);
+      box-shadow: 0 0 8px rgba(255, 255, 0, 0.5);
+    }
+    
+    .setting-value {
+      color: white;
+      font-size: 11px;
+      font-weight: bold;
+      min-width: 40px;
+      text-align: right;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    
+
+    
+    /* Adjust panel width and height for new content */
+    .similarity-panel {
+      width: 380px;
+      max-height: 500px;
+      overflow-y: auto;
+      padding: 20px 0;
+    }
+
+    /* Hide swatch labels by default - only show when .show class is added */
+    .swatch .hex-label,
+    .swatch .rgb-label,
+    .swatch .hsv-label {
+      display: none;
+    }
+    
+    .swatch .hex-label.show,
+    .swatch .rgb-label.show,
+    .swatch .hsv-label.show {
+      display: inline-block;
+    }
+
+    /* Base positioning for labels - will be overridden by JavaScript */
+    .swatch .hex-label.show {
+      bottom: 0px;
+    }
+    
+    .swatch .hsv-label.show {
+      bottom: 16px;
+    }
+    
+    .swatch .rgb-label.show {
+      bottom: 32px;
+    }
+
+    /* Ensure hover effects work for all label types */
+    .swatch .hex-label.show:hover {
+      color: #fff;
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.9);
+      /* Ensure no movement during hover */
+      transform: translateX(-50%);
+    }
+    
+    .swatch .hex-label.show:hover::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% + 8px);
+      height: calc(100% + 4px);
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      z-index: -1;
+    }
+
+    /* Color Adjustment Pane Styles */
+    .color-adjustment-pane {
+      position: fixed;
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 20px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      z-index: 10000;
+      min-width: 220px;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transform: scale(0.95);
+    }
+
+    .color-adjustment-pane.visible {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+    }
+
+
+
+    .color-adjustment-pane h4 {
+      margin: 0 0 15px 0;
+      color: white;
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 10px;
+      margin-bottom: 5px;
+    }
+
+    .color-adjustment-control {
+      margin-bottom: 15px;
+    }
+
+    .color-adjustment-control:last-child {
+      margin-bottom: 0;
+    }
+
+    .color-adjustment-control label {
+      display: block;
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .color-adjustment-control input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      margin: 0;
+    }
+
+    .color-adjustment-control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #333;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .color-adjustment-control input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .color-adjustment-control input[type="range"]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      background: white;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #333;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .color-adjustment-control input[type="range"]::-moz-range-thumb:hover {
+      transform: scale(1.1);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    .color-adjustment-value {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+    }
+
+    .color-adjustment-value span {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 11px;
+      font-weight: 500;
+      font-family: 'Courier New', monospace;
+    }
+
+    .color-adjustment-value .current-value {
+      color: white;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+
+  </style>
+</head>
+<body>
+  <h1>Palette</h1>
+
+  <!-- Format Panel -->
+  <div class="format-panel">
+    <div class="format-label">Format</div>
+    <div class="toggle-buttons">
+      <button class="toggle-button active" id="show-hex" data-setting="hex">Hex</button>
+      <button class="toggle-button" id="show-rgb" data-setting="rgb">RGB</button>
+      <button class="toggle-button" id="show-hsv" data-setting="hsv">HSV</button>
+    </div>
+  </div>
+
+<!-- Color Generation Settings Panel -->
+<div class="similarity-panel">
+  <div class="panel-header">
+    <div class="panel-title">Color Generation</div>
+  </div>
+  <div class="settings-grid">
+    <div class="setting-item">
+      <label for="saturation-range">Saturation Range</label>
+      <div class="range-slider-container">
+        <input type="range" id="saturation-range-min" class="range-slider-min" min="0" max="90" value="20" step="5">
+        <input type="range" id="saturation-range-max" class="range-slider-max" min="10" max="100" value="80" step="5">
+        <div class="range-slider-track"></div>
+      </div>
+      <span class="setting-value" id="saturation-range-value">20% - 80%</span>
+    </div>
+    <div class="setting-item">
+      <label for="lightness-range">Lightness Range</label>
+      <div class="range-slider-container">
+        <input type="range" id="lightness-range-min" class="range-slider-min" min="0" max="90" value="20" step="5">
+        <input type="range" id="lightness-range-max" class="range-slider-max" min="10" max="100" value="80" step="5">
+        <div class="range-slider-track"></div>
+      </div>
+      <span class="setting-value" id="lightness-range-value">20% - 80%</span>
+    </div>
+    <div class="setting-item">
+      <label for="hue-variation">Hue Variation</label>
+      <input type="range" id="hue-variation" min="0" max="180" value="90" step="5">
+      <span class="setting-value" id="hue-variation-value">90°</span>
+    </div>
+  </div>
+</div>
+
+  <div class="new-palette-controls">
+    <button class="new-palette-btn" id="new-palette">+</button>
+    <button class="import-palette-btn" id="import-palette">Import</button>
+  </div>
+  
+  <!-- Import Modal -->
+  <div id="import-modal" class="import-modal">
+    <div class="import-modal-content">
+      <div class="import-modal-header">
+        <h3>Import Colors</h3>
+        <button class="import-modal-close" id="import-modal-close">&times;</button>
+      </div>
+      <div class="import-modal-body">
+        <p>Paste hex color codes separated by commas and spaces (e.g., #FF0000, #00FF00, #0000FF):</p>
+        <textarea id="import-colors-input" placeholder="#FF0000, #00FF00, #0000FF" rows="6"></textarea>
+      </div>
+      <div class="import-modal-footer">
+        <button class="import-modal-cancel" id="import-modal-cancel">Cancel</button>
+        <button class="import-modal-submit" id="import-modal-submit">Import Colors</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="palettes-container">
+    <!-- Palettes will be dynamically added here -->
+  </div>
+
+  <script>
+    let selectedSwatch = null;
+    let isAnimating = false;
+    // Remove the global moveButtons Map - we'll create buttons dynamically
+    // let moveButtons = new Map(); // Track move buttons for each palette
+    let originalOrders = new Map(); // Store original order of swatches for each palette
+
+    // Color utility functions
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+
+    function rgbToHsl(r, g, b) {
+      r /= 255;
+      g /= 255;
+      b /= 255;
+      
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+
+      if (max === min) {
+        h = s = 0; // achromatic
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+
+      return { h: h * 360, s: s * 100, l: l * 100 };
+    }
+
+    function getColorIntensity(hex) {
+      const rgb = hexToRgb(hex);
+      if (!rgb) return 0;
+      // Calculate perceived brightness using luminance formula
+      return (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b);
+    }
+
+    function getColorHue(hex) {
+      const rgb = hexToRgb(hex);
+      if (!rgb) return 0;
+      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      return hsv.h;
+    }
+
+    function getColorSaturation(hex) {
+      const rgb = hexToRgb(hex);
+      if (!rgb) return 0;
+      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      return hsv.s;
+    }
+
+    function getColorRGB(hex) {
+      const rgb = hexToRgb(hex);
+      if (!rgb) return 0;
+      // Combine RGB values for sorting (weighted by importance)
+      return (rgb.r * 0.5 + rgb.g * 0.3 + rgb.b * 0.2);
+    }
+
+    // Automatic local storage syncing
+    function savePalettesToStorage() {
+      const palettes = document.querySelectorAll('.palette');
+      const paletteData = {};
+      palettes.forEach(palette => {
+        const swatches = Array.from(palette.querySelectorAll('.swatch'));
+        const swatchColors = swatches.map(swatch => {
+          // Use the data-hex attribute directly, which contains the actual hex color
+          const colorHex = swatch.getAttribute('data-hex');
+          return {
+            hex: colorHex,
+            label: colorHex, // The hex color is the label
+            locked: swatch.dataset.locked === 'true'
+          };
+        });
+        // Save palette lock state
+        const paletteLocked = palette.dataset.locked === 'true';
+        paletteData[palette.querySelector('h2').textContent] = {
+          colors: swatchColors,
+          locked: paletteLocked
+        };
+      });
+      
+      console.log('Saving palettes to storage:', paletteData);
+      localStorage.setItem('paletteData', JSON.stringify(paletteData));
+    }
+
+    // Palette name editing functionality
+    function makePaletteNameEditable(h2Element) {
+      const currentName = h2Element.textContent;
+      const palette = h2Element.closest('.palette');
+      
+      // Create input element
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = currentName;
+      input.className = 'palette-name-input';
+      
+      // Replace h2 with input
+      h2Element.style.display = 'none';
+      h2Element.parentNode.insertBefore(input, h2Element);
+      
+      // Focus and select text
+      input.focus();
+      input.select();
+      
+      // Handle save on Enter or blur
+      function saveName() {
+        const newName = input.value.trim();
+        if (newName && newName !== currentName) {
+          // Update the h2 text
+          h2Element.textContent = newName;
+          
+          // Update palette data in storage
+          const oldPaletteData = JSON.parse(localStorage.getItem('paletteData') || '{}');
+          if (oldPaletteData[currentName]) {
+            oldPaletteData[newName] = oldPaletteData[currentName];
+            delete oldPaletteData[currentName];
+            localStorage.setItem('paletteData', JSON.stringify(oldPaletteData));
+          }
+          
+          // Save to storage to ensure consistency
+          savePalettesToStorage();
+        }
+        
+        // Restore h2 and remove input
+        input.remove();
+        h2Element.style.display = '';
+      }
+      
+      // Handle cancel on Escape
+      function cancelEdit() {
+        input.remove();
+        h2Element.style.display = '';
+      }
+      
+      input.addEventListener('blur', saveName);
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          saveName();
+        } else if (e.key === 'Escape') {
+          cancelEdit();
+        }
+      });
+    }
+
+    function loadPalettesFromStorage() {
+      const savedData = localStorage.getItem('paletteData');
+      console.log('Loading palettes from storage:', savedData);
+      
+      if (savedData) {
+        const paletteData = JSON.parse(savedData);
+        console.log('Parsed palette data:', paletteData);
+        
+        const paletteContainer = document.querySelector('.palettes-container');
+        console.log('Palette container:', paletteContainer);
+        
+        // Clear existing palettes first
+        paletteContainer.innerHTML = '';
+        
+        // Recreate each palette from saved data
+        Object.keys(paletteData).forEach(paletteName => {
+          const paletteDataItem = paletteData[paletteName];
+          let paletteColors, paletteLocked;
+          
+          // Handle both old and new data formats
+          if (Array.isArray(paletteDataItem)) {
+            // Old format - just colors array
+            paletteColors = paletteDataItem;
+            paletteLocked = false;
+          } else {
+            // New format - object with colors and locked state
+            paletteColors = paletteDataItem.colors || [];
+            paletteLocked = paletteDataItem.locked || false;
+          }
+          
+          console.log(`Creating palette: ${paletteName} with ${paletteColors.length} colors, locked: ${paletteLocked}`);
+          
+          // Validate the color data before creating the palette
+          validateColorData(paletteName, paletteColors);
+          
+          const newPalette = document.createElement('div');
+          newPalette.className = 'palette';
+          
+          // Create palette HTML
+          newPalette.innerHTML = `
+            <div class="palette-header">
+              <h2>${paletteName}</h2>
+              <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="lock-controls">
+                  <button class="lock-main-btn" title="Lock palette">🔒</button>
+                </div>
+                <div class="delete-controls">
+                  <button class="delete-main-btn">DELETE</button>
+                </div>
+                <div class="sort-controls">
+                  <div class="sort-bracket">
+                    <span class="sort-label">SORT</span>
+                    <button class="sort-btn" data-sort="intensity">I</button>
+                    <button class="sort-btn" data-sort="hue">H</button>
+                    <button class="sort-btn" data-sort="saturation">S</button>
+                    <button class="sort-btn" data-sort="rgb">R</button>
+                  </div>
+                </div>
+                <button class="add-swatch-toolbar" title="Add random color">Add Color</button>
+                <button class="randomize-all-toolbar" title="Randomize all unlocked colors">Randomize</button>
+                <button class="copy-palette-toolbar" title="Copy all colors to clipboard">Copy Colors</button>
+              </div>
+            </div>
+            <div class="swatches">
+              ${paletteColors.map(colorData => {
+                // Validate and convert hex to RGB and HSV for display
+                let hex = colorData.hex;
+                
+                // Ensure hex is a valid hex color
+                if (!hex || !hex.startsWith('#')) {
+                  console.warn('Invalid hex color found:', hex, 'using fallback color');
+                  hex = '#FF5733'; // Fallback color
+                }
+                
+                const rgb = hexToRgb(hex);
+                const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+                
+                // Validate that RGB values are valid
+                if (rgb.r === 0 && rgb.g === 0 && rgb.b === 0 && hex !== '#000000') {
+                  console.warn('RGB conversion failed for hex:', hex, 'using fallback color');
+                  hex = '#FF5733';
+                  const fallbackRgb = hexToRgb(hex);
+                  const fallbackHsv = rgbToHsv(fallbackRgb.r, fallbackRgb.g, fallbackRgb.b);
+                  const swatchId = 'swatch_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                  
+                  return `<div class="swatch" style="background:${hex}" data-rgb="RGB(${fallbackRgb.r}, ${fallbackRgb.g}, ${fallbackRgb.b})" data-hsv="HSV(${Math.round(fallbackHsv.h)}, ${Math.round(fallbackHsv.s)}%, ${Math.round(fallbackHsv.v)}%)" data-hex="${hex}" data-locked="${colorData.locked || false}" data-swatch-id="${swatchId}">
+                    <span class="rgb-label">RGB(${fallbackRgb.r}, ${fallbackRgb.g}, ${fallbackRgb.b})</span>
+                    <span class="hsv-label">HSV(${Math.round(fallbackHsv.h)}, ${Math.round(fallbackHsv.s)}%, ${Math.round(fallbackHsv.v)}%)</span>
+                    <span class="hex-label">${hex}</span>
+                  </div>`;
+                }
+                
+                const swatchId = 'swatch_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                return `<div class="swatch" style="background:${hex}" data-rgb="RGB(${rgb.r}, ${rgb.g}, ${rgb.b})" data-hex="${hex}" data-locked="${colorData.locked || false}" data-swatch-id="${swatchId}">
+                  <span class="rgb-label">RGB(${rgb.r}, ${rgb.g}, ${rgb.b})</span>
+                  <span class="hsv-label">HSV(${Math.round(hsv.h)}, ${Math.round(hsv.s)}%, ${Math.round(hsv.v)}%)</span>
+                  <span class="hex-label">${hex}</span>
+                </div>`;
+              }).join('')}
+            </div>
+          `;
+          
+          // Add palette to container
+          paletteContainer.appendChild(newPalette);
+          
+          // Set palette lock state if it was locked
+          if (paletteLocked) {
+            newPalette.dataset.locked = 'true';
+          }
+          
+          // Initialize the restored palette
+          initializePalette(newPalette);
+          
+          // Add click-to-edit functionality to palette name
+          const paletteNameH2 = newPalette.querySelector('h2');
+          if (paletteNameH2) {
+            paletteNameH2.title = 'Click to rename palette';
+            paletteNameH2.addEventListener('click', () => makePaletteNameEditable(paletteNameH2));
+          }
+          
+          // Check add button state for restored palettes
+          updateAddColorButtonState(newPalette);
+          
+          // Don't auto-sort restored palettes - preserve their original order
+        });
+        
+        // Now that all palettes are created, initialize the move buttons
+        initializeSwatches();
+        
+        // Initialize controls for all loaded palettes
+        initializeSortControls();
+        
+        // Apply current settings to all loaded swatches immediately (don't save to storage yet)
+        updateSwatchLabels(false);
+        
+        // Adjust swatch sizes after DOM layout is complete and stable
+        // Use a more robust approach to ensure all CSS calculations are complete
+        const waitForStableLayout = () => {
+          return new Promise((resolve) => {
+            let lastWidth = 0;
+            let stableCount = 0;
+            const maxStableChecks = 3;
+            
+            const checkStability = () => {
+              // Force layout calculation
+              document.body.offsetHeight;
+              
+              // Check if the palettes container width is stable
+              const paletteContainer = document.querySelector('.palettes-container');
+              const currentWidth = paletteContainer.offsetWidth;
+              
+              if (currentWidth === lastWidth) {
+                stableCount++;
+                if (stableCount >= maxStableChecks) {
+                  resolve();
+                  return;
+                }
+              } else {
+                stableCount = 0;
+                lastWidth = currentWidth;
+              }
+              
+              // Check again after a short delay
+              setTimeout(checkStability, 50);
+            };
+            
+            // Start checking stability
+            checkStability();
+          });
+        };
+        
+        // Wait for layout to be stable, then adjust swatch sizes
+        waitForStableLayout().then(() => {
+          const palettes = document.querySelectorAll('.palette');
+          palettes.forEach(palette => {
+            adjustSwatchSizes(palette);
+            ensureSwatchLabels(palette);
+          });
+          
+          // Ensure all swatches are visible after sizing
+          const allSwatches = document.querySelectorAll('.swatch');
+          allSwatches.forEach(swatch => {
+            if (!swatch.classList.contains('sized')) {
+              swatch.classList.add('sized');
+            }
+          });
+        });
+        
+        // Debug: Check what CSS custom properties are set on the swatches
+        setTimeout(() => {
+          const palettes = document.querySelectorAll('.palette');
+          palettes.forEach((palette, paletteIndex) => {
+            const swatches = palette.querySelectorAll('.swatch');
+            console.log(`Palette ${paletteIndex}: Checking CSS custom properties on ${swatches.length} swatches`);
+            swatches.forEach((swatch, swatchIndex) => {
+              const computedStyle = getComputedStyle(swatch);
+              const hexColor = computedStyle.getPropertyValue('--hex-color');
+              const rgbColor = computedStyle.getPropertyValue('--rgb-color');
+              const hsvColor = computedStyle.getPropertyValue('--hsv-color');
+              console.log(`  Swatch ${swatchIndex}:`, {
+                hex: hexColor,
+                rgb: rgbColor,
+                hsv: hsvColor,
+                background: swatch.style.background
+              });
+            });
+          });
+          
+          // Apply current settings to loaded swatches (don't save to storage yet)
+          updateSwatchLabels(false);
+          
+          // Ensure proper positioning for all loaded swatches
+          const allSwatches = document.querySelectorAll('.swatch');
+          allSwatches.forEach(swatch => {
+            repositionSwatchLabels(swatch);
+          });
+        }, 100);
+      } else {
+        console.log('No saved palette data found');
+      }
+    }
+
+    // Generate unique palette name with sequential numbering
+    function generateUniquePaletteName() {
+      const existingPalettes = document.querySelectorAll('.palette h2');
+      const unnamedPalettes = [];
+      
+      // Find all existing "Unnamed Palette" names and extract their numbers
+      existingPalettes.forEach(h2 => {
+        const name = h2.textContent;
+        if (name.startsWith('Unnamed Palette #')) {
+          const match = name.match(/Unnamed Palette #(\d+)/);
+          if (match) {
+            unnamedPalettes.push(parseInt(match[1]));
+          }
+        }
+      });
+      
+      // Find the next available number
+      let nextNumber = 1;
+      while (unnamedPalettes.includes(nextNumber)) {
+        nextNumber++;
+      }
+      
+      return `Unnamed Palette #${nextNumber}`;
+    }
+
+    // Simple random color generation
+    function generateRandomColor() {
+      // Get current settings
+      const minSaturation = getCurrentMinSaturation();
+      const maxSaturation = getCurrentMaxSaturation();
+      const minLightness = getCurrentMinLightness();
+      const maxLightness = getCurrentMaxLightness();
+      
+      // Generate random hue (0-360°)
+      const hue = Math.floor(Math.random() * 360);
+      
+      // Generate random saturation within range
+      const saturation = Math.floor(Math.random() * (maxSaturation - minSaturation + 1)) + minSaturation;
+      
+      // Generate random lightness within range
+      const lightness = Math.floor(Math.random() * (maxLightness - minLightness + 1)) + minLightness;
+      
+      // Convert HSL to RGB
+      const h = hue / 360;
+      const s = saturation / 100;
+      const l = lightness / 100;
+      
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+      const m = l - c / 2;
+      
+      let r, g, b;
+      if (h < 1/6) {
+        r = c; g = x; b = 0;
+      } else if (h < 2/6) {
+        r = x; g = c; b = 0;
+      } else if (h < 3/6) {
+        r = 0; g = c; b = x;
+      } else if (h < 4/6) {
+        r = 0; g = x; b = c;
+      } else if (h < 5/6) {
+        r = x; g = 0; b = c;
+      } else {
+        r = c; g = 0; b = x;
+      }
+      
+      const red = Math.round((r + m) * 255);
+      const green = Math.round((g + m) * 255);
+      const blue = Math.round((b + m) * 255);
+      
+      // Convert RGB to HSV for consistency
+      const hsv = rgbToHsv(red, green, blue);
+      
+      return {
+        hex: `#${red.toString(16).padStart(2, '0')}${green.toString(16).padStart(2, '0')}${blue.toString(16).padStart(2, '0')}`.toUpperCase(),
+        rgb: { r: red, g: green, b: blue },
+        hsv: hsv
+      };
+    }
+
+    // Generate related colors from a single anchor color
+    function generateRelatedColorFromAnchor(anchorColor) {
+      if (!anchorColor || !anchorColor.hsv) {
+        return generateRandomColor();
+      }
+      
+      // Get current settings
+      const hueVariation = getCurrentHueVariation();
+      const minSaturation = getCurrentMinSaturation();
+      const maxSaturation = getCurrentMaxSaturation();
+      const minLightness = getCurrentMinLightness();
+      const maxLightness = getCurrentMaxLightness();
+      
+      // Generate new hue within variation range
+      const baseHue = anchorColor.hsv.h;
+      const hueChange = (Math.random() - 0.5) * hueVariation;
+      let newHue = baseHue + hueChange;
+      
+      // Ensure hue stays within 0-360 range
+      if (newHue < 0) newHue += 360;
+      if (newHue >= 360) newHue -= 360;
+      
+      // Generate new saturation and lightness within ranges
+      const newSaturation = Math.floor(Math.random() * (maxSaturation - minSaturation + 1)) + minSaturation;
+      const newLightness = Math.floor(Math.random() * (maxLightness - minLightness + 1)) + minLightness;
+      
+      // Convert HSL to RGB
+      const h = newHue / 360;
+      const s = newSaturation / 100;
+      const l = newLightness / 100;
+      
+      const c = (1 - Math.abs(2 * l - 1)) * s;
+      const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+      const m = l - c / 2;
+      
+      let r, g, b;
+      if (h < 1/6) {
+        r = c; g = x; b = 0;
+      } else if (h < 2/6) {
+        r = x; g = c; b = 0;
+      } else if (h < 3/6) {
+        r = 0; g = c; b = x;
+      } else if (h < 4/6) {
+        r = 0; g = x; b = c;
+      } else if (h < 5/6) {
+        r = x; g = 0; b = c;
+      } else {
+        r = c; g = 0; b = x;
+      }
+      
+      const red = Math.round((r + m) * 255);
+      const green = Math.round((g + m) * 255);
+      const blue = Math.round((b + m) * 255);
+      
+      // Convert RGB to HSV for consistency
+      const hsv = rgbToHsv(red, green, blue);
+      
+      return {
+        hex: `#${red.toString(16).padStart(2, '0')}${green.toString(16).padStart(2, '0')}${blue.toString(16).padStart(2, '0')}`.toUpperCase(),
+        rgb: { r: red, g: green, b: blue },
+        hsv: hsv
+      };
+    }
+
+    // Generate related colors within a specified margin of existing colors
+    function generateRelatedColor(existingColors) {
+      console.log('generateRelatedColor received:', existingColors);
+      
+      if (!existingColors || existingColors.length === 0) {
+        console.log('No existing colors, falling back to random');
+        return generateRandomColor();
+      }
+      
+      // Use locked colors as primary anchors, fallback to all colors if no locked ones
+      let anchorColors = existingColors.filter(color => color.locked);
+      
+      // If no locked colors, use all colors as anchors
+      if (anchorColors.length === 0) {
+        anchorColors = existingColors;
+        console.log('No locked colors, using all colors as anchors');
+      }
+      
+      console.log('Anchor colors:', anchorColors);
+      
+      // If still no anchor colors, generate a random one
+      if (anchorColors.length === 0) {
+        console.log('No anchor colors, falling back to random');
+        return generateRandomColor();
+      }
+      
+      // Pick a random anchor color to base the new color on
+      const anchorColor = anchorColors[Math.floor(Math.random() * anchorColors.length)];
+      
+      console.log('Using anchor color:', {
+        hex: anchorColor.hex,
+        hsv: anchorColor.hsv
+      });
+      
+      // Generate a related color from this anchor
+      return generateRelatedColorFromAnchor(anchorColor);
+    }
+
+    // Helper function to extract color data from swatches
+    function extractColorDataFromSwatches(swatches) {
+      return Array.from(swatches).map(swatch => {
+        const hex = swatch.getAttribute('data-hex');
+        const rgb = swatch.getAttribute('data-rgb');
+        const hsv = swatch.getAttribute('data-hsv');
+        const locked = swatch.dataset.locked === 'true';
+        
+        console.log('Extracting from swatch:', {
+          hex, rgb, hsv, locked
+        });
+        
+        // Parse RGB values
+        const rgbMatch = rgb.match(/RGB\((\d+),\s*(\d+),\s*(\d+)\)/);
+        const rgbValues = rgbMatch ? {
+          r: parseInt(rgbMatch[1]),
+          g: parseInt(rgbMatch[2]),
+          b: parseInt(rgbMatch[3])
+        } : { r: 0, g: 0, b: 0 };
+        
+        // Parse HSV values
+        const hsvMatch = hsv.match(/HSV\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+        const hsvValues = hsvMatch ? {
+          h: parseInt(hsvMatch[1]),
+          s: parseInt(hsvMatch[2]),
+          v: parseInt(hsvMatch[3])
+        } : { h: 0, s: 0, v: 0 };
+        
+        console.log('Parsed values:', {
+          rgb: rgbValues,
+          hsv: hsvValues
+        });
+        
+        return {
+          hex,
+          rgb: rgbValues,
+          hsv: hsvValues,
+          locked
+        };
+      });
+    }
+    
+    // Helper functions to get current settings values
+    function getCurrentMinSaturation() {
+      const minSaturationSlider = document.getElementById('saturation-range-min');
+      const minSaturation = minSaturationSlider ? parseInt(minSaturationSlider.value) : 20;
+      return minSaturation;
+    }
+    
+    function getCurrentMaxSaturation() {
+      const maxSaturationSlider = document.getElementById('saturation-range-max');
+      const maxSaturation = maxSaturationSlider ? parseInt(maxSaturationSlider.value) : 80;
+      return maxSaturation;
+    }
+    
+    function getCurrentMinLightness() {
+      const minLightnessSlider = document.getElementById('lightness-range-min');
+      const minLightness = minLightnessSlider ? parseInt(minLightnessSlider.value) : 20;
+      return minLightness;
+    }
+    
+    function getCurrentMaxLightness() {
+      const maxLightnessSlider = document.getElementById('lightness-range-max');
+      const maxLightness = maxLightnessSlider ? parseInt(maxLightnessSlider.value) : 80;
+      return maxLightness;
+    }
+    
+    function getCurrentHueVariation() {
+      const hueVariationSlider = document.getElementById('hue-variation');
+      const hueVariation = hueVariationSlider ? parseInt(hueVariationSlider.value) : 90;
+      return hueVariation;
+    }
+    
+    // Helper functions for range sliders
+    function updateRangeSliderValue(valueElementId, minValue, maxValue, unit) {
+      const valueElement = document.getElementById(valueElementId);
+      if (valueElement) {
+        valueElement.textContent = `${minValue}${unit} - ${maxValue}${unit}`;
+      }
+    }
+    
+    function updateRangeSliderHighlight(minSliderId, maxSliderId) {
+      const minSlider = document.getElementById(minSliderId);
+      const maxSlider = document.getElementById(maxSliderId);
+      const container = minSlider ? minSlider.closest('.range-slider-container') : null;
+      
+      if (container) {
+        const minValue = parseInt(minSlider.value);
+        const maxValue = parseInt(maxSlider.value);
+        const minPercent = (minValue / 100) * 100;
+        const maxPercent = (maxValue / 100) * 100;
+        
+        // Update the highlighted range
+        container.style.setProperty('--min-pos', `${minPercent}%`);
+        container.style.setProperty('--max-pos', `${maxPercent}%`);
+        
+        // Add visual feedback when at minimum gap
+        if (maxValue - minValue === 10) {
+          container.classList.add('at-min-gap');
+        } else {
+          container.classList.remove('at-min-gap');
+        }
+      }
+    }
+    
+    // Function to validate and fix range settings to ensure 10% minimum gap
+    function validateAndFixRangeSettings(minSlider, maxSlider) {
+      if (!minSlider || !maxSlider) return;
+      
+      const minVal = parseInt(minSlider.value);
+      const maxVal = parseInt(maxSlider.value);
+      
+      // Ensure minimum 10% gap by pushing the other slider if possible
+      if (maxVal - minVal < 10) {
+        if (minVal + 10 <= 100) {
+          // Push max up to maintain gap
+          maxSlider.value = minVal + 10;
+        } else if (maxVal - 10 >= 0) {
+          // Push min down to maintain gap
+          minSlider.value = maxVal - 10;
+        } else {
+          // Fallback: set to valid range
+          minSlider.value = 0;
+          maxSlider.value = 10;
+        }
+      }
+      
+      // Ensure values are within valid ranges
+      if (minVal < 0) minSlider.value = 0;
+      if (maxVal > 100) maxSlider.value = 100;
+      if (minVal > 90) minSlider.value = 90;
+      if (maxVal < 10) maxSlider.value = 10;
+    }
+    
+    // Debug function to show current settings (temporary)
+    function debugMargins() {
+      const minSaturation = getCurrentMinSaturation();
+      const maxSaturation = getCurrentMaxSaturation();
+      const minLightness = getCurrentMinLightness();
+      const maxLightness = getCurrentMaxLightness();
+      const hueVariation = getCurrentHueVariation();
+      
+      console.log(`=== COLOR GENERATION SETTINGS ===`);
+      console.log(`Saturation Range: ${minSaturation}% - ${maxSaturation}%`);
+      console.log(`Lightness Range: ${minLightness}% - ${maxLightness}%`);
+      console.log(`Hue Variation: ±${hueVariation}°`);
+      console.log(`--- APPLIED RANGES ---`);
+      console.log(`Saturation: ${maxSaturation - minSaturation}% range`);
+      console.log(`Lightness: ${maxLightness - minLightness}% range`);
+      console.log(`Hue: ±${hueVariation}° variation from anchor colors`);
+      
+      return { minSaturation, maxSaturation, minLightness, maxLightness, hueVariation };
+    }
+
+    // Helper function to update add color button state
+    function updateAddColorButtonState(palette) {
+      const addSwatchToolbar = palette.querySelector('.add-swatch-toolbar');
+      if (addSwatchToolbar) {
+        const swatchCount = palette.querySelectorAll('.swatch').length;
+        if (swatchCount >= 15) {
+          addSwatchToolbar.disabled = true;
+          addSwatchToolbar.title = 'Maximum swatches reached (15)';
+        } else {
+          addSwatchToolbar.disabled = false;
+          addSwatchToolbar.title = 'Add random color';
+        }
+      }
+    }
+
+    function handleAddColor(palette) {
+      // Check if palette is locked
+      if (palette.dataset.locked === 'true') {
+        console.log('Cannot add color to locked palette');
+        return;
+      }
+      
+      // Always ensure palette is unfrozen before adding colors
+      if (isInstantShifting) {
+        console.log('Add Color button clicked - ensuring palette is unfrozen');
+        unfreezePalette(palette);
+      } else {
+        // Even if not frozen, ensure any potential frozen state is cleared
+        console.log('Add Color button clicked - ensuring clean palette state');
+        const swatchesContainer = palette.querySelector('.swatches');
+        if (swatchesContainer) {
+          // Clear any potential frozen styles
+          swatchesContainer.style.transition = '';
+          swatchesContainer.style.justifyContent = '';
+          swatchesContainer.style.paddingLeft = '';
+        }
+      }
+      
+      const swatchesContainer = palette.querySelector('.swatches');
+      const addSwatchToolbar = palette.querySelector('.add-swatch-toolbar');
+      const currentSwatches = palette.querySelectorAll('.swatch');
+      
+      // Check if we've reached the limit of 15 swatches
+      if (currentSwatches.length >= 15) {
+        return; // Don't add more swatches
+      }
+      
+      // Extract existing color data to generate related colors
+      const existingColors = extractColorDataFromSwatches(currentSwatches);
+              const newColor = generateRelatedColor(existingColors);
+      
+      // Add click animation to toolbar button
+      addSwatchToolbar.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        addSwatchToolbar.style.transform = 'scale(1)';
+      }, 150);
+      
+      // Create new swatch
+      const newSwatch = document.createElement('div');
+      newSwatch.className = 'swatch';
+      newSwatch.style.background = newColor.hex;
+      newSwatch.dataset.locked = 'false'; // Initialize as unlocked
+      
+      // Generate unique ID for color adjustment pane sliders
+      const swatchId = 'swatch_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      newSwatch.dataset.swatchId = swatchId;
+      
+      // Set data attributes for the text content
+      newSwatch.setAttribute('data-rgb', `RGB(${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b})`);
+      newSwatch.setAttribute('data-hsv', `HSV(${newColor.hsv.h}, ${newColor.hsv.s}%, ${newColor.hsv.v}%)`);
+      newSwatch.setAttribute('data-hex', newColor.hex);
+      
+      // Create HTML structure with text content - CSS controls the styling and positioning
+      newSwatch.innerHTML = `
+        <span class="rgb-label">RGB(${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b})</span>
+        <span class="hsv-label">HSV(${newColor.hsv.h}, ${newColor.hsv.s}%, ${newColor.hsv.v}%)</span>
+        <span class="hex-label">${newColor.hex}</span>
+      `;
+      
+      // Append to the end of swatches container
+      swatchesContainer.appendChild(newSwatch);
+      
+      // Mark the new swatch as properly sized and visible
+      newSwatch.classList.add('sized');
+      
+      // Add event listeners to new swatch
+      newSwatch.addEventListener('click', handleSwatchClick);
+      newSwatch.addEventListener('mouseenter', handleSwatchHover);
+      newSwatch.addEventListener('mouseleave', handleSwatchHoverLeave);
+      newSwatch.addEventListener('copy', handleSwatchCopy);
+      
+      // Add click event listeners to color labels for clipboard functionality
+      const rgbLabel = newSwatch.querySelector('.rgb-label');
+      const hsvLabel = newSwatch.querySelector('.hsv-label');
+      const hexLabel = newSwatch.querySelector('.hex-label');
+      
+      if (rgbLabel) {
+        rgbLabel.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent swatch selection
+          const rgbText = newSwatch.getAttribute('data-rgb');
+          copyToClipboard(rgbText, e);
+        });
+      }
+      
+      if (hsvLabel) {
+        hsvLabel.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent swatch selection
+          const hsvText = newSwatch.getAttribute('data-hsv');
+          copyToClipboard(hsvText, e);
+        });
+      }
+      
+      if (hexLabel) {
+        hexLabel.addEventListener('click', (e) => {
+          e.stopPropagation(); // Prevent swatch selection
+          const hexText = newSwatch.getAttribute('data-hex');
+          copyToClipboard(hexText, e);
+        });
+      }
+      
+      // Create and append swap button
+      const swapButton = createSwapButton(newSwatch);
+      newSwatch.appendChild(swapButton);
+
+      // Add hover controls
+      const controls = createSwatchControls(newSwatch);
+      newSwatch.appendChild(controls);
+      
+      // Update original orders
+      const swatches = Array.from(palette.querySelectorAll('.swatch'));
+      originalOrders.set(palette, swatches);
+      
+      // Update add button state
+      updateAddColorButtonState(palette);
+      
+
+      
+      // Adjust swatch sizes IMMEDIATELY for instant responsiveness
+      adjustSwatchSizes(palette);
+      
+      // Force recentering after adding the new swatch
+      const recenterContainer = palette.querySelector('.swatches');
+      if (recenterContainer) {
+        const recenterSwatches = palette.querySelectorAll('.swatch');
+        if (recenterSwatches.length <= 5) {
+          // Always center when we have 5 or fewer swatches
+          recenterContainer.style.justifyContent = 'center';
+        }
+      }
+      
+      // Auto-save the palette
+      savePalettesToStorage();
+      
+      // Apply current settings to the new swatch
+      updateSwatchLabels();
+      
+      // Ensure proper positioning for the new swatch
+      repositionSwatchLabels(newSwatch);
+      
+      // Add animation effect after resizing
+      newSwatch.style.transform = 'scale(0)';
+      setTimeout(() => {
+        newSwatch.style.transform = 'scale(1)';
+      }, 10);
+      
+
+    }
+
+    // Function to ensure all swatches have RGB and HSV labels
+    function ensureSwatchLabels(palette) {
+      const swatches = palette.querySelectorAll('.swatch');
+      
+      swatches.forEach((swatch, index) => {
+        // Check if data attributes are already set
+        const existingRgb = swatch.getAttribute('data-rgb');
+        const existingHsv = swatch.getAttribute('data-hsv');
+        const existingHex = swatch.getAttribute('data-hex');
+        
+        // Only set attributes if they're missing
+        if (!existingRgb || !existingHsv || !existingHex) {
+          // Prioritize using the data-hex attribute if it exists
+          let hexColor = existingHex;
+          
+          // If no hex in data attribute, try to get it from CSS as fallback
+          if (!hexColor) {
+            hexColor = swatch.style.background;
+            
+            // If style.background is empty, try to get it from the computed style
+            if (!hexColor || hexColor === 'none') {
+              const computedStyle = getComputedStyle(swatch);
+              hexColor = computedStyle.backgroundColor;
+            }
+          }
+          
+          if (hexColor && (hexColor.startsWith('#') || hexColor.startsWith('rgb'))) {
+            // Convert hex to RGB and HSV
+            let rgb, hsv;
+            if (hexColor.startsWith('#')) {
+              rgb = hexToRgb(hexColor);
+              hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+            } else {
+              // Handle rgb() format
+              const rgbMatch = hexColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+              if (rgbMatch) {
+                rgb = { r: parseInt(rgbMatch[1]), g: parseInt(rgbMatch[2]), b: parseInt(rgbMatch[3]) };
+                hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+                hexColor = `#${rgb.r.toString(16).padStart(2, '0')}${rgb.g.toString(16).padStart(2, '0')}${rgb.b.toString(16).padStart(2, '0')}`;
+              }
+            }
+            
+            if (rgb && hsv) {
+              // Update the data attributes
+              if (!existingRgb) {
+                swatch.setAttribute('data-rgb', `RGB(${rgb.r}, ${rgb.g}, ${rgb.b})`);
+              }
+              if (!existingHsv) {
+                swatch.setAttribute('data-hsv', `HSV(${Math.round(hsv.h)}, ${Math.round(hsv.s)}%, ${Math.round(hsv.v)}%)`);
+              }
+              if (!existingHex) {
+                swatch.setAttribute('data-hex', hexColor);
+              }
+              
+              // Also update the text content of the elements
+              const rgbLabel = swatch.querySelector('.rgb-label');
+              const hsvLabel = swatch.querySelector('.hsv-label');
+              const hexLabel = swatch.querySelector('.label');
+              
+              if (rgbLabel) {
+                rgbLabel.textContent = `RGB(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+                // Ensure click event listener is attached for clipboard functionality
+                if (!rgbLabel.hasAttribute('data-clipboard-bound')) {
+                  rgbLabel.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent swatch selection
+                    const rgbText = swatch.getAttribute('data-rgb');
+                    copyToClipboard(rgbText, e);
+                  });
+                  rgbLabel.setAttribute('data-clipboard-bound', 'true');
+                }
+              }
+              if (hsvLabel) {
+                hsvLabel.textContent = `HSV(${Math.round(hsv.h)}, ${Math.round(hsv.s)}%, ${Math.round(hsv.v)}%)`;
+                // Ensure click event listener is attached for clipboard functionality
+                if (!hsvLabel.hasAttribute('data-clipboard-bound')) {
+                  hsvLabel.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent swatch selection
+                    const hsvText = swatch.getAttribute('data-hsv');
+                    copyToClipboard(hsvText, e);
+                  });
+                  hsvLabel.setAttribute('data-clipboard-bound', 'true');
+                }
+              }
+              if (hexLabel) {
+                hexLabel.textContent = hexColor;
+                // Ensure click event listener is attached for clipboard functionality
+                if (!hexLabel.hasAttribute('data-clipboard-bound')) {
+                  hexLabel.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent swatch selection
+                    const hexText = swatch.getAttribute('data-hex');
+                                      copyToClipboard(hexText, e);
+                });
+                hexLabel.setAttribute('data-clipboard-bound', 'true');
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Global flag to prevent swatch sizing during instant shifts
+    let isInstantShifting = false;
+    
+    // Helper function to calculate available width with proper padding constraints
+    function calculateAvailableWidth(palette) {
+      const swatchesContainer = palette.querySelector('.swatches');
+      const containerWidth = swatchesContainer.offsetWidth;
+      
+      // Get the actual computed padding from the palettes-container
+      const paletteContainer = palette.closest('.palettes-container');
+      const computedStyle = getComputedStyle(paletteContainer);
+      const leftPadding = parseFloat(computedStyle.paddingLeft);
+      const rightPadding = parseFloat(computedStyle.paddingRight);
+      const containerPadding = leftPadding + rightPadding;
+      
+      // Also account for body padding if it affects the layout
+      const bodyStyle = getComputedStyle(document.body);
+      const bodyLeftPadding = parseFloat(bodyStyle.paddingLeft);
+      const bodyRightPadding = parseFloat(bodyStyle.paddingRight);
+      const totalPadding = containerPadding + bodyLeftPadding + bodyRightPadding;
+      
+      return {
+        containerWidth,
+        totalPadding,
+        availableWidth: containerWidth - totalPadding
+      };
+    }
+    
+    // Function to calculate and apply optimal swatch sizes
+    function adjustSwatchSizes(palette) {
+      // Skip sizing if we're in the middle of an instant shift
+      if (isInstantShifting) return;
+      
+      const swatchesContainer = palette.querySelector('.swatches');
+      const swatches = palette.querySelectorAll('.swatch');
+      if (swatches.length === 0) return;
+      
+      // Get the container width and calculate actual available space
+      const { availableWidth } = calculateAvailableWidth(palette);
+      const gap = 10; // Same as CSS gap
+      
+      // Debug logging for padding calculations (only in development)
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        const { containerWidth, totalPadding } = calculateAvailableWidth(palette);
+        console.log('Layout calculation:', {
+          containerWidth,
+          totalPadding,
+          availableWidth
+        });
+      }
+      
+      // Calculate optimal swatch width
+      // No need to include add button since it's now in the toolbar
+      const totalItems = swatches.length;
+      const totalGaps = totalItems - 1; // Gaps between items
+      const totalSwatchWidth = availableWidth - (totalGaps * gap);
+      const optimalWidth = Math.max(80, Math.min(160, totalSwatchWidth / totalItems));
+      
+
+      
+      // Calculate if content fits without scrolling
+      const totalContentWidth = (totalItems * optimalWidth) + (totalGaps * gap);
+      const needsScrolling = totalContentWidth > availableWidth;
+      
+
+      
+      // Adjust justify-content based on whether scrolling is needed
+      if (needsScrolling) {
+        swatchesContainer.style.justifyContent = 'flex-start';
+      } else {
+        swatchesContainer.style.justifyContent = 'center';
+      }
+      
+      // Prepare the final width to apply
+      let finalWidth = optimalWidth;
+      
+      // If we have very few swatches, don't make them too small
+      if (totalItems <= 5) {
+        const minComfortableWidth = Math.max(120, optimalWidth);
+        finalWidth = Math.min(160, minComfortableWidth);
+      }
+      
+      // Apply the width to all swatches
+      swatches.forEach(swatch => {
+        swatch.style.width = `${finalWidth}px`;
+        swatch.style.minWidth = `${finalWidth}px`;
+        swatch.style.maxWidth = `${finalWidth}px`;
+        // Update CSS custom properties for responsive text sizing
+        swatch.style.setProperty('--swatch-width', `${finalWidth}px`);
+        
+        // Mark swatch as properly sized to show it
+        swatch.classList.add('sized');
+      });
+      
+      // Final check for centering if we adjusted the width
+      if (totalItems <= 5) {
+        const finalContentWidth = (totalItems * finalWidth) + (totalGaps * gap);
+        const finalNeedsScrolling = finalContentWidth > availableWidth;
+        
+        if (finalNeedsScrolling) {
+          swatchesContainer.style.justifyContent = 'flex-start';
+        } else {
+          swatchesContainer.style.justifyContent = 'center';
+        }
+      }
+    }
+
+    function createNewPalette() {
+      // Get the dedicated palettes container
+      const paletteContainer = document.querySelector('.palettes-container');
+      
+      const newPalette = document.createElement('div');
+      newPalette.className = 'palette';
+      
+      // Generate unique palette name with sequential numbering
+      const paletteName = generateUniquePaletteName();
+      
+      // Create palette HTML
+      newPalette.innerHTML = `
+        <div class="palette-header">
+          <h2>${paletteName}</h2>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="lock-controls">
+              <button class="lock-main-btn" title="Lock palette">🔒</button>
+            </div>
+            <div class="delete-controls">
+              <button class="delete-main-btn">DELETE</button>
+            </div>
+            <div class="sort-controls">
+              <div class="sort-bracket">
+                <span class="sort-label">SORT</span>
+                <button class="sort-btn" data-sort="intensity">I</button>
+                <button class="sort-btn" data-sort="hue">H</button>
+                <button class="sort-btn" data-sort="saturation">S</button>
+                <button class="sort-btn" data-sort="rgb">R</button>
+              </div>
+            </div>
+            <button class="add-swatch-toolbar" title="Add random color">Add Color</button>
+            <button class="randomize-all-toolbar" title="Randomize all unlocked colors">Randomize</button>
+            <button class="copy-palette-toolbar" title="Copy all colors to clipboard">Copy Colors</button>
+          </div>
+        </div>
+        <div class="swatches">
+          ${(() => {
+            // Generate first color randomly, then related colors
+            const colors = [];
+            const firstColor = generateRandomColor();
+            colors.push(firstColor);
+            
+            // Generate 4 more related colors, building on the previous ones
+            for (let i = 1; i < 5; i++) {
+              // Use the immediately preceding color as the anchor
+              const anchorColor = colors[i - 1];
+              const relatedColor = generateRelatedColorFromAnchor(anchorColor);
+              colors.push(relatedColor);
+            }
+            
+            return colors.map((color, index) => {
+              const swatchId = 'swatch_' + Date.now() + '_' + index + '_' + Math.random().toString(36).substr(2, 9);
+              return `<div class="swatch" style="background:${color.hex}" data-rgb="RGB(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b})" data-hsv="HSV(${Math.round(color.hsv.h)}, ${Math.round(color.hsv.s)}%, ${Math.round(color.hsv.v)}%)" data-hex="${color.hex}" data-locked="${color.locked || false}" data-swatch-id="${swatchId}">
+                <span class="rgb-label">RGB(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b})</span>
+                <span class="hsv-label">HSV(${Math.round(color.hsv.h)}, ${Math.round(color.hsv.s)}%, ${Math.round(color.hsv.v)}%)</span>
+                <span class="hex-label">${color.hex}</span>
+              </div>`;
+            }).join('');
+          })()}
+        </div>
+      `;
+      
+      // Insert new palette at the top of the container
+      paletteContainer.insertBefore(newPalette, paletteContainer.firstElementChild);
+      
+      // Initialize the new palette
+      initializePalette(newPalette);
+      
+      // Add click-to-edit functionality to palette name
+      const paletteNameH2 = newPalette.querySelector('h2');
+      if (paletteNameH2) {
+        paletteNameH2.title = 'Click to rename palette';
+        paletteNameH2.addEventListener('click', () => makePaletteNameEditable(paletteNameH2));
+      }
+      
+      // Auto-sort by hue when first created
+      sortSwatches(newPalette, 'hue');
+      
+      // Wait for layout to be stable before adjusting swatch sizes
+      requestAnimationFrame(() => {
+        // Force a layout calculation
+        document.body.offsetHeight;
+        
+        // Adjust swatch sizes to fit without wrapping
+        adjustSwatchSizes(newPalette);
+        
+        // Ensure add button is enabled for new palettes (they start with 5 swatches)
+        updateAddColorButtonState(newPalette);
+        
+        // Auto-save the new palette
+        savePalettesToStorage();
+        
+        // Apply current settings to the new swatches
+        updateSwatchLabels();
+        
+        // Ensure proper positioning for all new swatches
+        const newSwatches = newPalette.querySelectorAll('.swatch');
+        newSwatches.forEach(swatch => {
+          repositionSwatchLabels(swatch);
+        });
+        
+        // Scroll to the new palette
+        newPalette.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    }
+
+    function initializePalette(palette) {
+      const swatches = palette.querySelectorAll('.swatch');
+      const swatchesContainer = palette.querySelector('.swatches');
+      // No longer need to query for add-swatch since it's in the toolbar
+      
+      // Remove move button creation from initialization - we'll create them dynamically
+      // const buttons = [];
+      // swatches.forEach((_, index) => {
+      //   const button = createMoveButton(index);
+      //   buttons.push(button);
+      // });
+      // moveButtons.set(palette, buttons);
+      
+      // Store original order
+      originalOrders.set(palette, Array.from(swatches));
+      
+      // Add event listeners to swatches
+      swatches.forEach(swatch => {
+        swatch.addEventListener('click', handleSwatchClick);
+        swatch.addEventListener('mouseenter', handleSwatchHover);
+        swatch.addEventListener('mouseleave', handleSwatchHoverLeave);
+        swatch.addEventListener('copy', handleSwatchCopy);
+        
+        // Add click event listeners to color labels for clipboard functionality
+        const rgbLabel = swatch.querySelector('.rgb-label');
+        const hsvLabel = swatch.querySelector('.hsv-label');
+        const hexLabel = swatch.querySelector('.hex-label');
+        
+        if (rgbLabel) {
+          rgbLabel.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent swatch selection
+            const rgbText = swatch.getAttribute('data-rgb');
+            copyToClipboard(rgbText, e);
+          });
+        }
+        
+        if (hsvLabel) {
+          hsvLabel.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent swatch selection
+            const hsvText = swatch.getAttribute('data-hsv');
+            copyToClipboard(hsvText, e);
+          });
+        }
+        
+        if (hexLabel) {
+          hexLabel.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent swatch selection
+            const hexText = swatch.getAttribute('data-hex');
+            copyToClipboard(hexText, e);
+          });
+        }
+        
+        // Create and append swap button
+        const swapButton = createSwapButton(swatch);
+        swatch.appendChild(swapButton);
+
+        // Add hover controls
+        const controls = createSwatchControls(swatch);
+        swatch.appendChild(controls);
+      });
+      
+      // Add event listener to add swatch toolbar button
+      const addSwatchToolbar = palette.querySelector('.add-swatch-toolbar');
+      if (addSwatchToolbar) {
+        addSwatchToolbar.addEventListener('click', () => handleAddColor(palette));
+      }
+      
+      // Add event listener to randomize all toolbar button
+      const randomizeAllToolbar = palette.querySelector('.randomize-all-toolbar');
+      if (randomizeAllToolbar) {
+        randomizeAllToolbar.addEventListener('click', () => randomizeAllUnlockedSwatches(palette));
+      }
+      
+      // Add event listener to copy palette toolbar button
+      const copyPaletteToolbar = palette.querySelector('.copy-palette-toolbar');
+      if (copyPaletteToolbar) {
+        copyPaletteToolbar.addEventListener('click', () => copyPaletteToClipboard(palette));
+      }
+      
+      // Update add button state
+      updateAddColorButtonState(palette);
+      
+      // Initialize sort controls with expanding functionality
+      initializeSortControlsForPalette(palette);
+      
+      // Initialize delete controls with expanding functionality
+      initializeDeleteControlsForPalette(palette);
+      
+      // Initialize lock controls with functionality
+      initializeLockControlsForPalette(palette);
+      
+      // Ensure all swatches have RGB and HSV labels
+      ensureSwatchLabels(palette);
+    }
+
+    // Sorting functions
+    function sortSwatches(palette, sortType) {
+      // Check if palette is locked
+      if (palette.dataset.locked === 'true') {
+        console.log('Cannot sort locked palette');
+        return;
+      }
+      
+      const swatchesContainer = palette.querySelector('.swatches');
+      const swatches = Array.from(swatchesContainer.querySelectorAll('.swatch'));
+      
+      // Sort swatches based on sort type
+      const sortedSwatches = [...swatches].sort((a, b) => {
+        const colorA = a.getAttribute('data-hex');
+        const colorB = b.getAttribute('data-hex');
+        
+        let valueA, valueB;
+        
+        switch (sortType) {
+          case 'intensity':
+            valueA = getColorIntensity(colorA);
+            valueB = getColorIntensity(colorB);
+            break;
+          case 'hue':
+            valueA = getColorHue(colorA);
+            valueB = getColorHue(colorB);
+            break;
+          case 'saturation':
+            valueA = getColorSaturation(colorA);
+            valueB = getColorSaturation(colorB);
+            break;
+          case 'rgb':
+            valueA = getColorRGB(colorA);
+            valueB = getColorRGB(colorB);
+            break;
+          default:
+            return 0;
+        }
+        
+        // Debug logging for saturation sorting
+        if (sortType === 'saturation') {
+          console.log(`Sorting by saturation: ${colorA} (${valueA}%) vs ${colorB} (${valueB}%)`);
+        }
+        
+        return valueA - valueB;
+      });
+
+      // Reorder swatches in DOM
+      sortedSwatches.forEach(swatch => {
+        swatchesContainer.appendChild(swatch);
+      });
+      
+      // No need to reposition add button since it's now in the toolbar
+      
+      // Auto-save after sorting
+      savePalettesToStorage();
+      
+      // Adjust swatch sizes to fit without wrapping
+      adjustSwatchSizes(palette);
+    }
+
+    function initializeSortControlsForPalette(palette) {
+      const sortControls = palette.querySelector('.sort-controls');
+      const sortBracket = sortControls.querySelector('.sort-bracket');
+      const sortButtons = sortBracket.querySelectorAll('.sort-btn');
+      
+      // Add click handlers to sort option buttons
+      sortButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+          const sortType = e.target.dataset.sort;
+          
+          // Sort the swatches
+          sortSwatches(palette, sortType);
+        });
+        
+        // Add tooltip functionality
+        button.addEventListener('mouseenter', (e) => {
+          const sortType = e.target.dataset.sort;
+          const tooltipText = getSortTooltipText(sortType);
+          showSortTooltip(e.target, tooltipText);
+        });
+        
+        button.addEventListener('mouseleave', (e) => {
+          hideSortTooltip();
+        });
+        
+        button.addEventListener('mousemove', (e) => {
+          updateSortTooltipPosition(e);
+        });
+      });
+    }
+
+    function initializeDeleteControlsForPalette(palette) {
+      const deleteControls = palette.querySelector('.delete-controls');
+      if (!deleteControls) {
+        console.error('Delete controls not found in palette:', palette);
+        return;
+      }
+      
+      const deleteMainBtn = deleteControls.querySelector('.delete-main-btn');
+      if (!deleteMainBtn) {
+        console.error('Delete main button not found in delete controls:', deleteControls);
+        return;
+      }
+      
+      let isConfirming = false;
+      let resetTimeout = null;
+      
+      // Add click handler to main delete button
+      deleteMainBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        if (!isConfirming) {
+          // First click - change to confirmation state
+          isConfirming = true;
+          deleteMainBtn.textContent = 'SURE?';
+          deleteMainBtn.classList.add('confirming');
+          
+          // Set timeout to reset after 3 seconds
+          resetTimeout = setTimeout(() => {
+            resetDeleteButton();
+          }, 3000);
+          
+        } else {
+          // Second click - delete the palette
+          clearTimeout(resetTimeout);
+          palette.remove();
+          // Auto-save after deletion
+          savePalettesToStorage();
+        }
+      });
+      
+      // Function to reset the delete button
+      function resetDeleteButton() {
+        isConfirming = false;
+        deleteMainBtn.textContent = 'DELETE';
+        deleteMainBtn.classList.remove('confirming');
+        if (resetTimeout) {
+          clearTimeout(resetTimeout);
+          resetTimeout = null;
+        }
+      }
+      
+      // Reset button when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!deleteControls.contains(e.target)) {
+          resetDeleteButton();
+        }
+      });
+    }
+
+    function initializeLockControlsForPalette(palette) {
+      console.log('Initializing lock controls for palette:', palette);
+      const lockControls = palette.querySelector('.lock-controls');
+      if (!lockControls) {
+        console.error('Lock controls not found in palette:', palette);
+        return;
+      }
+      console.log('Found lock controls:', lockControls);
+      
+      const lockMainBtn = lockControls.querySelector('.lock-main-btn');
+      if (!lockMainBtn) {
+        console.error('Lock main button not found in lock controls:', lockControls);
+        return;
+      }
+      console.log('Found lock main button:', lockMainBtn);
+      
+      // Check if palette is already locked (from storage)
+      const isLocked = palette.dataset.locked === 'true';
+      if (isLocked) {
+        lockMainBtn.classList.add('locked');
+        lockMainBtn.innerHTML = '🔒';
+        lockMainBtn.title = 'Unlock palette';
+        updatePaletteButtonStates(palette, true);
+      } else {
+        lockMainBtn.classList.remove('locked');
+        lockMainBtn.innerHTML = '🔓';
+        lockMainBtn.title = 'Lock palette';
+        updatePaletteButtonStates(palette, false);
+      }
+      
+      // Add click handler to lock button
+      lockMainBtn.addEventListener('click', (e) => {
+        console.log('Lock button clicked!');
+        e.stopPropagation();
+        
+        const currentLocked = palette.dataset.locked === 'true';
+        const newLocked = !currentLocked;
+        console.log('Lock state changing from', currentLocked, 'to', newLocked);
+        
+        // Update palette lock state
+        palette.dataset.locked = newLocked;
+        
+        // Update button appearance
+        if (newLocked) {
+          lockMainBtn.classList.add('locked');
+          lockMainBtn.innerHTML = '🔒';
+          lockMainBtn.title = 'Unlock palette';
+        } else {
+          lockMainBtn.classList.remove('locked');
+          lockMainBtn.innerHTML = '🔓';
+          lockMainBtn.title = 'Lock palette';
+        }
+        
+        // Update all button states
+        updatePaletteButtonStates(palette, newLocked);
+        
+        // Save to storage
+        savePalettesToStorage();
+      });
+    }
+
+    function updatePaletteButtonStates(palette, isLocked) {
+      // Get all toolbar buttons in this palette
+      const addButton = palette.querySelector('.add-swatch-toolbar');
+      const randomizeButton = palette.querySelector('.randomize-all-toolbar');
+      const copyButton = palette.querySelector('.copy-palette-toolbar');
+      const deleteButton = palette.querySelector('.delete-main-btn');
+      const sortButtons = palette.querySelectorAll('.sort-btn');
+      
+      if (isLocked) {
+        // Disable all buttons when locked
+        if (addButton) addButton.disabled = true;
+        if (randomizeButton) randomizeButton.disabled = true;
+        if (copyButton) copyButton.disabled = true;
+        if (deleteButton) deleteButton.disabled = true;
+        sortButtons.forEach(btn => btn.disabled = true);
+      } else {
+        // Enable all buttons when unlocked
+        if (addButton) addButton.disabled = false;
+        if (randomizeButton) randomizeButton.disabled = false;
+        if (copyButton) copyButton.disabled = false;
+        if (deleteButton) deleteButton.disabled = false;
+        sortButtons.forEach(btn => btn.disabled = false);
+      }
+    }
+
+    function initializeSortControls() {
+      console.log('initializeSortControls called');
+      const palettes = document.querySelectorAll('.palette');
+      console.log('Found', palettes.length, 'existing palettes');
+      
+      palettes.forEach((palette, index) => {
+        console.log(`Initializing palette ${index}:`, palette);
+        const swatches = palette.querySelectorAll('.swatch');
+        
+        // Store original order
+        originalOrders.set(palette, Array.from(swatches));
+        
+        // Initialize sort controls with expanding functionality
+        initializeSortControlsForPalette(palette);
+        
+        // Initialize delete controls with expanding functionality
+        initializeDeleteControlsForPalette(palette);
+        
+        // Initialize lock controls with functionality
+        initializeLockControlsForPalette(palette);
+      });
+    }
+
+    function initializeSwatches() {
+      console.log('=== initializeSwatches() called ===');
+      const palettes = document.querySelectorAll('.palette');
+      console.log('Found palettes:', palettes.length);
+      
+      palettes.forEach(palette => {
+        const swatches = palette.querySelectorAll('.swatch');
+        const swatchesContainer = palette.querySelector('.swatches');
+        
+        // Remove move button creation - we'll create them dynamically when needed
+        // const buttons = [];
+        // for (let i = 0; i <= swatches.length; i++) {
+        //   const button = createMoveButton(i);
+        //   buttons.push(button);
+        // }
+        
+        swatches.forEach(swatch => {
+          swatch.addEventListener('click', handleSwatchClick);
+          
+          // Add hover event listeners for swap functionality
+          swatch.addEventListener('mouseenter', handleSwatchHover);
+          swatch.addEventListener('mouseleave', handleSwatchHoverLeave);
+          swatch.addEventListener('copy', handleSwatchCopy);
+          
+          // Create and append swap button (initially hidden)
+          const swapButton = createSwapButton(swatch);
+          swatch.appendChild(swapButton);
+
+                  // Add hover controls
+        const controls = createSwatchControls(swatch);
+        swatch.appendChild(controls);
+      });
+      
+      // Ensure all swatches have RGB and HSV labels
+      ensureSwatchLabels(palette);
+    });
+    }
+
+    function createMoveButton(position) {
+      const button = document.createElement('div');
+      button.className = 'move-button';
+      button.innerHTML = '';
+      button.dataset.position = position;
+      button.addEventListener('click', handleMoveButtonClick);
+      return button;
+    }
+
+    function createSwapButton(swatch) {
+      const button = document.createElement('div');
+      button.className = 'swap-button';
+      button.innerHTML = '↔';
+      button.dataset.swatch = swatch;
+      button.addEventListener('click', handleSwapButtonClick);
+      return button;
+    }
+
+    function createColorAdjustmentPane(swatch) {
+      const pane = document.createElement('div');
+      pane.className = 'color-adjustment-pane';
+      
+      // Get current color values
+      const hexColor = swatch.getAttribute('data-hex');
+      const rgb = hexToRgb(hexColor);
+      const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+      
+      pane.innerHTML = `
+        <h4>Adjust Color</h4>
+        <div class="color-adjustment-control">
+          <label for="hue-slider-${swatch.dataset.swatchId || 'default'}">Hue</label>
+          <input type="range" id="hue-slider-${swatch.dataset.swatchId || 'default'}" 
+                 min="0" max="360" value="${hsv.h}" step="1">
+          <div class="color-adjustment-value">
+            <span>0°</span>
+            <span class="current-value">${hsv.h}°</span>
+            <span>360°</span>
+          </div>
+        </div>
+        <div class="color-adjustment-control">
+          <label for="saturation-slider-${swatch.dataset.swatchId || 'default'}">Saturation</label>
+          <input type="range" id="saturation-slider-${swatch.dataset.swatchId || 'default'}" 
+                 min="0" max="100" value="${hsv.s}" step="1">
+          <div class="color-adjustment-value">
+            <span>0%</span>
+            <span class="current-value">${hsv.s}%</span>
+            <span>100%</span>
+          </div>
+        </div>
+        <div class="color-adjustment-control">
+          <label for="value-slider-${swatch.dataset.swatchId || 'default'}">Value</label>
+          <input type="range" id="value-slider-${swatch.dataset.swatchId || 'default'}" 
+                 min="0" max="100" value="${hsv.v}" step="1">
+          <div class="color-adjustment-value">
+            <span>0%</span>
+            <span class="current-value">${hsv.v}%</span>
+            <span>100%</span>
+          </div>
+        </div>
+      `;
+      
+      // Add event listeners to sliders
+      const hueSlider = pane.querySelector(`#hue-slider-${swatch.dataset.swatchId || 'default'}`);
+      const saturationSlider = pane.querySelector(`#saturation-slider-${swatch.dataset.swatchId || 'default'}`);
+      const valueSlider = pane.querySelector(`#value-slider-${swatch.dataset.swatchId || 'default'}`);
+      
+      // Update color when sliders change
+      const updateColor = () => {
+        const newH = parseInt(hueSlider.value);
+        const newS = parseInt(saturationSlider.value);
+        const newV = parseInt(valueSlider.value);
+        
+        // Update display values
+        hueSlider.nextElementSibling.querySelector('.current-value').textContent = `${newH}°`;
+        saturationSlider.nextElementSibling.querySelector('.current-value').textContent = `${newS}%`;
+        valueSlider.nextElementSibling.querySelector('.current-value').textContent = `${newV}%`;
+        
+        // Convert HSV to RGB to hex
+        const newRgb = hsvToRgb(newH, newS, newV);
+        const newHex = rgbToHex(newRgb.r, newRgb.g, newRgb.b);
+        
+        // Update swatch color
+        swatch.style.background = newHex;
+        
+        // Update data attributes
+        swatch.setAttribute('data-hex', newHex);
+        swatch.setAttribute('data-rgb', `RGB(${newRgb.r}, ${newRgb.g}, ${newRgb.b})`);
+        swatch.setAttribute('data-hsv', `HSV(${newH}, ${newS}%, ${newV}%)`);
+        
+        // Update label text content
+        const rgbLabel = swatch.querySelector('.rgb-label');
+        const hsvLabel = swatch.querySelector('.hsv-label');
+        const hexLabel = swatch.querySelector('.hex-label');
+        
+        if (rgbLabel) rgbLabel.textContent = `RGB(${newRgb.r}, ${newRgb.g}, ${newRgb.b})`;
+        if (hsvLabel) hsvLabel.textContent = `HSV(${newH}, ${newS}%, ${newV}%)`;
+        if (hexLabel) hexLabel.textContent = newHex;
+        
+        // Auto-save changes
+        savePalettesToStorage();
+      };
+      
+      hueSlider.addEventListener('input', updateColor);
+      saturationSlider.addEventListener('input', updateColor);
+      valueSlider.addEventListener('input', updateColor);
+      
+      return pane;
+    }
+
+    function handleSwatchHover(event) {
+      if (!selectedSwatch || isAnimating) return;
+      
+      const hoveredSwatch = event.currentTarget;
+      const selectedPalette = selectedSwatch.closest('.palette');
+      const hoveredPalette = hoveredSwatch.closest('.palette');
+      
+      // Only show swap button if hovering over a different swatch in the same palette
+      if (hoveredSwatch !== selectedSwatch && selectedPalette === hoveredPalette) {
+        const swapButton = hoveredSwatch.querySelector('.swap-button');
+        if (swapButton) {
+          console.log('Showing swap button on hover');
+          swapButton.classList.add('visible');
+        }
+      }
+    }
+
+    function handleSwatchHoverLeave(event) {
+      const hoveredSwatch = event.currentTarget;
+      const swapButton = hoveredSwatch.querySelector('.swap-button');
+      if (swapButton) {
+        console.log('Hiding swap button on leave');
+        swapButton.classList.remove('visible');
+      }
+      
+      // Check if we should unfreeze the palette when leaving a swatch
+      const palette = hoveredSwatch.closest('.palette');
+      if (palette && isInstantShifting) {
+        // Check if the mouse is still within the palette bounds
+        const paletteRect = palette.getBoundingClientRect();
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        
+        // If mouse is outside palette bounds, unfreeze immediately
+        if (mouseX < paletteRect.left || mouseX > paletteRect.right || 
+            mouseY < paletteRect.top || mouseY > paletteRect.bottom) {
+          console.log('Mouse left palette bounds - unfreezing immediately');
+          unfreezePalette(palette);
+        } else {
+          // Mouse is still in palette but left a swatch - check if we should unfreeze
+          // This handles the case where user moves from swatch to toolbar
+          console.log('Mouse left swatch but still in palette - checking if should unfreeze');
+          
+          // Use a shorter, more responsive delay to catch toolbar movement
+          setTimeout(() => {
+            // Check if mouse is now over toolbar or outside palette
+            const elementUnderMouse = document.elementFromPoint(mouseX, mouseY);
+            if (elementUnderMouse && (
+                elementUnderMouse.closest('.palette-header') || 
+                elementUnderMouse.closest('.add-swatch-toolbar') ||
+                elementUnderMouse.closest('.randomize-all-toolbar') ||
+                elementUnderMouse.closest('.sort-controls') ||
+                elementUnderMouse.closest('.delete-controls') ||
+                elementUnderMouse.closest('.sort-btn') ||
+                elementUnderMouse.closest('.delete-main-btn') ||
+                !elementUnderMouse.closest('.palette'))) {
+              console.log('Mouse moved to toolbar or outside palette - unfreezing');
+              unfreezePalette(palette);
+            }
+          }, 20); // Further reduced to 20ms for even better responsiveness
+        }
+      }
+    }
+    
+    // Function to unfreeze a palette from its frozen state
+    function unfreezePalette(palette) {
+      if (!isInstantShifting) return; // Already unfrozen
+      
+      console.log('Unfreezing palette - removing all constraints');
+      
+      const swatchesContainer = palette.querySelector('.swatches');
+      if (!swatchesContainer) return;
+      
+      // Re-enable transitions
+      swatchesContainer.style.transition = '';
+      swatchesContainer.style.removeProperty('transition');
+      
+      // Remove the forced justify-content override
+      swatchesContainer.style.justifyContent = '';
+      swatchesContainer.style.removeProperty('justify-content');
+      
+      // Remove the temporary left padding that was preserving position
+      swatchesContainer.style.paddingLeft = '';
+      swatchesContainer.style.removeProperty('padding-left');
+      
+      // Reset the instant shifting flag
+      isInstantShifting = false;
+      
+      // Clear any individual swatch constraints that might prevent proper sizing
+      const swatches = palette.querySelectorAll('.swatch');
+      swatches.forEach(swatch => {
+        swatch.style.width = '';
+        swatch.style.minWidth = '';
+        swatch.style.maxWidth = '';
+        swatch.style.height = '';
+        swatch.style.removeProperty('width');
+        swatch.style.removeProperty('min-width');
+        swatch.style.removeProperty('max-width');
+        swatch.style.removeProperty('height');
+      });
+      
+      console.log('All constraints removed, triggering layout recalculation');
+      
+      // Trigger full layout recalculation with recentering
+      adjustSwatchSizes(palette);
+      
+      // Ensure proper centering after unfreezing
+      const unfreezeSwatches = palette.querySelectorAll('.swatch');
+      if (unfreezeSwatches.length <= 5) {
+        // Always center when we have 5 or fewer swatches
+        swatchesContainer.style.justifyContent = 'center';
+      }
+    }
+
+    function handleSwapButtonClick(event) {
+      event.stopPropagation(); // Prevent swatch selection
+      
+      if (isAnimating || !selectedSwatch) return;
+      
+      const swapButton = event.currentTarget;
+      const targetSwatch = swapButton.closest('.swatch');
+      
+      if (targetSwatch && targetSwatch !== selectedSwatch) {
+        console.log('Swapping swatches via swap button');
+        
+        // Hide move buttons before swapping
+        const palette = selectedSwatch.closest('.palette');
+        hideMoveButtons(palette);
+        
+        // Perform the swap
+        swapSwatches(selectedSwatch, targetSwatch);
+      }
+    }
+
+    function handleSwatchCopy(event) {
+      // Get the current selection
+      const selection = window.getSelection();
+      if (!selection.rangeCount) return;
+      
+      // Get the selected text
+      const selectedText = selection.toString().trim();
+      if (!selectedText) return;
+      
+      // Check if the selection contains hex codes
+      const hexCodeRegex = /#[0-9A-F]{6}/gi;
+      const hexCodes = selectedText.match(hexCodeRegex);
+      
+      if (hexCodes && hexCodes.length > 1) {
+        // Format multiple hex codes with comma separation
+        const formattedText = hexCodes.join(', ');
+        
+        // Set the clipboard data
+        event.clipboardData.setData('text/plain', formattedText);
+        event.preventDefault(); // Prevent default copy behavior
+      } else if (hexCodes && hexCodes.length === 1) {
+        // Single hex code - include RGB and HSV if available
+        const swatch = event.target.closest('.swatch');
+        if (swatch) {
+          // Get the color data from data attributes
+          const rgbColor = swatch.getAttribute('data-rgb');
+          const hsvColor = swatch.getAttribute('data-hsv');
+          
+          if (rgbColor && hsvColor) {
+            const formattedText = `${hexCodes[0]}\n${rgbColor}\n${hsvColor}`;
+            event.clipboardData.setData('text/plain', formattedText);
+            event.preventDefault();
+          }
+        }
+      }
+    }
+
+    // Function to copy text to clipboard
+    async function copyToClipboard(text, event) {
+      try {
+        await navigator.clipboard.writeText(text);
+        // Show a brief visual feedback near the mouse
+        showCopyFeedback(event);
+      } catch (err) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        showCopyFeedback(event);
+      }
+    }
+
+    // Function to validate color data and log any issues
+    function validateColorData(paletteName, colorData) {
+      console.log(`Validating palette: ${paletteName}`);
+      colorData.forEach((color, index) => {
+        if (!color.hex || !color.hex.startsWith('#')) {
+          console.error(`Invalid hex color at index ${index}:`, color.hex);
+        } else {
+          const rgb = hexToRgb(color.hex);
+          if (rgb.r === 0 && rgb.g === 0 && rgb.b === 0 && color.hex !== '#000000') {
+            console.error(`RGB conversion failed for hex ${color.hex} at index ${index}`);
+          } else {
+            console.log(`Color ${index}: ${color.hex} -> RGB(${rgb.r}, ${rgb.g}, ${rgb.b})`);
+          }
+        }
+      });
+    }
+
+    // Function to copy palette colors to clipboard
+    function copyPaletteToClipboard(palette) {
+      const swatches = palette.querySelectorAll('.swatch');
+      const colors = Array.from(swatches).map(swatch => {
+        return swatch.getAttribute('data-hex');
+      }).filter(hex => hex); // Filter out any undefined values
+      
+      if (colors.length === 0) {
+        console.warn('No colors found to copy');
+        return;
+      }
+      
+      // Join colors with comma and space as requested
+      const colorString = colors.join(', ');
+      
+      // Copy to clipboard
+      copyToClipboard(colorString, null);
+      
+      // Show visual feedback
+      const copyButton = palette.querySelector('.copy-palette-toolbar');
+      if (copyButton) {
+        // Add click animation
+        copyButton.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          copyButton.style.transform = 'scale(1)';
+        }, 150);
+      }
+    }
+    
+    // Import Modal Functions
+    function openImportModal() {
+      const modal = document.getElementById('import-modal');
+      const input = document.getElementById('import-colors-input');
+      
+      // Clear previous input
+      input.value = '';
+      
+      // Show modal
+      modal.style.display = 'block';
+      
+      // Focus on input
+      setTimeout(() => {
+        input.focus();
+      }, 100);
+      
+    }
+    
+    function closeImportModal() {
+      const modal = document.getElementById('import-modal');
+      modal.style.display = 'none';
+    }
+    
+    function setupModalEventListeners() {
+      // This function is now just a placeholder since event listeners are set up in DOMContentLoaded
+      // It's kept for potential future use or if we need to dynamically add listeners
+    }
+    
+    function handleImportSubmit() {
+      const input = document.getElementById('import-colors-input');
+      const colorText = input.value.trim();
+      
+      if (!colorText) {
+        alert('Please enter some color codes to import.');
+        return;
+      }
+      
+      // Parse the color codes
+      const colors = parseColorCodes(colorText);
+      
+      if (colors.length === 0) {
+        alert('No valid hex color codes found. Please check your input format.');
+        return;
+      }
+      
+      // Create new palette with imported colors
+      createPaletteFromColors(colors);
+      
+      // Close modal
+      closeImportModal();
+    }
+    
+    function parseColorCodes(colorText) {
+      // Split by comma and space, then filter and validate hex codes
+      const colorArray = colorText.split(/,\s*/).map(color => color.trim());
+      
+      return colorArray.filter(color => {
+        // Check if it's a valid hex color (with or without #)
+        const hexRegex = /^#?([0-9A-F]{6}|[0-9A-F]{3})$/i;
+        return hexRegex.test(color);
+      }).map(color => {
+        // Ensure all colors have # prefix
+        return color.startsWith('#') ? color : '#' + color;
+      });
+    }
+    
+    function createPaletteFromColors(colors) {
+      // Generate unique palette name
+      const paletteName = generateUniquePaletteName();
+      
+      // Create new palette element
+      const newPalette = document.createElement('div');
+      newPalette.className = 'palette';
+      
+      // Create palette HTML with imported colors
+      newPalette.innerHTML = `
+        <div class="palette-header">
+          <h2>${paletteName}</h2>
+          <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="lock-controls">
+              <button class="lock-main-btn" title="Lock palette">🔒</button>
+            </div>
+            <div class="delete-controls">
+              <button class="delete-main-btn">DELETE</button>
+            </div>
+            <div class="sort-controls">
+              <div class="sort-bracket">
+                <span class="sort-label">SORT</span>
+                <button class="sort-btn" data-sort="intensity">I</button>
+                <button class="sort-btn" data-sort="hue">H</button>
+                <button class="sort-btn" data-sort="saturation">S</button>
+                <button class="sort-btn" data-sort="rgb">R</button>
+              </div>
+            </div>
+            <button class="add-swatch-toolbar" title="Add random color">Add Color</button>
+            <button class="randomize-all-toolbar" title="Randomize all unlocked colors">Randomize</button>
+            <button class="copy-palette-toolbar" title="Copy all colors to clipboard">Copy Colors</button>
+          </div>
+        </div>
+        <div class="swatches">
+          ${colors.map((hexColor, index) => {
+            // Convert hex to RGB and HSV for display
+            const rgb = hexToRgb(hexColor);
+            const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+            const swatchId = 'swatch_' + Date.now() + '_' + index + '_' + Math.random().toString(36).substr(2, 9);
+            
+            return `<div class="swatch" style="background:${hexColor}" data-rgb="RGB(${rgb.r}, ${rgb.g}, ${rgb.b})" data-hsv="HSV(${Math.round(hsv.h)}, ${Math.round(hsv.s)}%, ${Math.round(hsv.v)}%)" data-hex="${hexColor}" data-locked="false" data-swatch-id="${swatchId}">
+              <span class="rgb-label">RGB(${rgb.r}, ${rgb.g}, ${rgb.b})</span>
+              <span class="hsv-label">HSV(${Math.round(hsv.h)}, ${Math.round(hsv.s)}%, ${Math.round(hsv.v)}%)</span>
+              <span class="hex-label">${hexColor}</span>
+            </div>`;
+          }).join('')}
+        </div>
+      `;
+      
+      // Insert new palette at the top of the container
+      const paletteContainer = document.querySelector('.palettes-container');
+      paletteContainer.insertBefore(newPalette, paletteContainer.firstElementChild);
+      
+      // Initialize the new palette
+      initializePalette(newPalette);
+      
+      // Add click-to-edit functionality to palette name
+      const paletteNameH2 = newPalette.querySelector('h2');
+      if (paletteNameH2) {
+        paletteNameH2.title = 'Click to rename palette';
+        paletteNameH2.addEventListener('click', () => makePaletteNameEditable(paletteNameH2));
+      }
+      
+      // Wait for layout to be stable before adjusting swatch sizes
+      requestAnimationFrame(() => {
+        // Force a layout calculation
+        document.body.offsetHeight;
+        
+        // Adjust swatch sizes to fit without wrapping
+        adjustSwatchSizes(newPalette);
+        
+        // Update add button state
+        updateAddColorButtonState(newPalette);
+        
+        // Auto-save the new palette
+        savePalettesToStorage();
+        
+        // Apply current settings to the new swatches
+        updateSwatchLabels();
+        
+        // Ensure proper positioning for all new swatches
+        const newSwatches = newPalette.querySelectorAll('.swatch');
+        newSwatches.forEach(swatch => {
+          repositionSwatchLabels(swatch);
+        });
+        
+        // Scroll to the new palette
+        newPalette.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      
+      // Show success feedback
+      showImportSuccessFeedback(colors.length);
+    }
+    
+    function showImportSuccessFeedback(colorCount) {
+      // Create or update feedback element
+      let feedback = document.getElementById('import-success-feedback');
+      if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.id = 'import-success-feedback';
+        feedback.style.cssText = `
+          position: fixed;
+          background: rgba(76, 175, 80, 0.9);
+          color: white;
+          padding: 12px 18px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: bold;
+          z-index: 10000;
+          opacity: 0;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+          border: 1px solid rgba(76, 175, 80, 0.6);
+          pointer-events: none;
+          top: 20px;
+          right: 20px;
+        `;
+        document.body.appendChild(feedback);
+      }
+      
+      feedback.innerHTML = `Successfully imported ${colorCount} colors!`;
+      feedback.style.opacity = '1';
+      feedback.style.transform = 'translateY(0)';
+      
+      setTimeout(() => {
+        feedback.style.opacity = '0';
+        feedback.style.transform = 'translateY(-10px)';
+      }, 3000);
+    }
+
+    // Function to show copy feedback
+    function showCopyFeedback(event) {
+      // Create or update feedback element
+      let feedback = document.getElementById('copy-feedback');
+      if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.id = 'copy-feedback';
+        feedback.style.cssText = `
+          position: fixed;
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 12px 18px;
+          border-radius: 8px;
+          font-size: 14px;
+          font-weight: bold;
+          z-index: 10000;
+          opacity: 0;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          pointer-events: none;
+        `;
+        document.body.appendChild(feedback);
+      }
+      
+      // Position the feedback near the mouse cursor
+      if (event) {
+        const mouseX = event.clientX;
+        const mouseY = event.clientY;
+        const feedbackWidth = 200; // Approximate width
+        const feedbackHeight = 50; // Approximate height
+        
+        // Position to the right and slightly above the cursor, but ensure it stays in viewport
+        let left = mouseX + 20;
+        let top = mouseY - feedbackHeight - 20;
+        
+        // Adjust if it would go off the right edge
+        if (left + feedbackWidth > window.innerWidth) {
+          left = mouseX - feedbackWidth - 20;
+        }
+        
+        // Adjust if it would go off the top edge
+        if (top < 20) {
+          top = mouseY + 20;
+        }
+        
+        feedback.style.left = `${left}px`;
+        feedback.style.top = `${top}px`;
+      } else {
+        // Fallback to top-right corner if no event
+        feedback.style.left = 'auto';
+        feedback.style.right = '20px';
+        feedback.style.top = '20px';
+      }
+      
+      feedback.innerHTML = 'Copied to clipboard!';
+      feedback.style.opacity = '1';
+      feedback.style.transform = 'translateY(0)';
+      
+      setTimeout(() => {
+        feedback.style.opacity = '0';
+        feedback.style.transform = 'translateY(-10px)';
+      }, 2000);
+    }
+
+    function handleSwatchClick(event) {
+      if (isAnimating) return;
+      
+      const clickedSwatch = event.currentTarget;
+      const palette = clickedSwatch.closest('.palette');
+      
+      if (!selectedSwatch) {
+        // First selection - show move buttons and color adjustment pane
+        selectedSwatch = clickedSwatch;
+        clickedSwatch.classList.add('selected');
+        showMoveButtons(palette);
+        showColorAdjustmentPane(clickedSwatch);
+      } else if (selectedSwatch === clickedSwatch) {
+        // Deselect the same swatch
+        selectedSwatch.classList.remove('selected');
+        hideColorAdjustmentPane(selectedSwatch);
+        selectedSwatch = null;
+        hideMoveButtons(palette);
+      } else if (selectedSwatch.closest('.palette') === palette) {
+        // Different swatch in same palette - select the new swatch and maintain move buttons
+        console.log('Changing selection within same palette');
+        selectedSwatch.classList.remove('selected');
+        hideColorAdjustmentPane(selectedSwatch);
+        
+        selectedSwatch = clickedSwatch;
+        clickedSwatch.classList.add('selected');
+        
+        // Reposition move buttons for the new selection (don't hide them)
+        console.log('Repositioning move buttons for new selection');
+        showMoveButtons(palette);
+        showColorAdjustmentPane(clickedSwatch);
+        
+        // Hide any visible swap buttons immediately
+        hideAllSwapButtons();
+      } else {
+        // Different palette - deselect old and select new
+        const oldPalette = selectedSwatch.closest('.palette');
+        selectedSwatch.classList.remove('selected');
+        hideColorAdjustmentPane(selectedSwatch);
+        hideMoveButtons(oldPalette);
+        
+        selectedSwatch = clickedSwatch;
+        clickedSwatch.classList.add('selected');
+        showMoveButtons(palette);
+        showColorAdjustmentPane(clickedSwatch);
+        
+        // Hide any visible swap buttons immediately
+        hideAllSwapButtons();
+      }
+    }
+
+    function handleMoveButtonClick(event) {
+      if (isAnimating || !selectedSwatch) return;
+      
+      const button = event.currentTarget;
+      const targetPosition = parseInt(button.dataset.position);
+      const palette = selectedSwatch.closest('.palette');
+      const swatches = Array.from(palette.querySelectorAll('.swatch'));
+      const currentIndex = swatches.indexOf(selectedSwatch);
+      
+      console.log(`Move button clicked: moving from position ${currentIndex} to position ${targetPosition}`);
+      console.log(`Button dataset position: ${button.dataset.position}`);
+      console.log(`Button position in loop: ${targetPosition}`);
+      console.log(`Current swatches:`, swatches.map(s => s.getAttribute('data-hex')));
+      
+      if (currentIndex !== targetPosition) {
+        // Hide move buttons immediately when clicked
+        hideMoveButtons(palette);
+        hideColorAdjustmentPane(selectedSwatch);
+        moveSwatchToPosition(selectedSwatch, targetPosition, palette);
+      } else {
+        // If the target position is the same as current, treat it as deselection
+        console.log('Target position same as current, deselecting');
+        selectedSwatch.classList.remove('selected');
+        hideColorAdjustmentPane(selectedSwatch);
+        selectedSwatch = null;
+        hideMoveButtons(palette);
+      }
+    }
+
+    function showMoveButtons(palette) {
+      const buttons = []; // This variable is no longer needed
+      const swatches = Array.from(palette.querySelectorAll('.swatch'));
+      const swatchesContainer = palette.querySelector('.swatches');
+      const selectedIndex = swatches.indexOf(selectedSwatch);
+      
+      console.log('Showing move buttons for palette:', palette.querySelector('h2').textContent);
+      console.log('Selected swatch index:', selectedIndex);
+      console.log('Total swatches:', swatches.length);
+      console.log('Current selected swatch:', selectedSwatch ? selectedSwatch.getAttribute('data-hex') : 'none');
+      
+      // Clear any existing buttons first (only from this palette)
+      palette.querySelectorAll('.move-button').forEach(button => {
+        if (button.parentNode) {
+          button.parentNode.removeChild(button);
+        }
+      });
+      
+      // Show buttons at every possible position
+      for (let i = 0; i <= swatches.length; i++) {
+        // Skip buttons that would appear on the sides of the selected swatch
+        // Also skip outside buttons when they would be adjacent to the selected swatch
+        if ((i > 0 && i < swatches.length && (i === selectedIndex || i === selectedIndex + 1)) ||
+            (i === 0 && selectedIndex === 0) ||
+            (i === swatches.length && selectedIndex === swatches.length - 1)) {
+          continue;
+        }
+        const button = createMoveButton(i); // Create button dynamically
+        console.log(`Creating move button for position ${i}`);
+        if (button) {
+          // Append button to container
+          swatchesContainer.appendChild(button);
+          
+          // Position button - simplified logic
+          let left = 0, top = 0;
+          
+          if (i === 0) {
+            // Button at the beginning (before first swatch)
+            // Mirror the distance between first swatch center and first inside button
+            const firstSwatch = swatches[0];
+            if (firstSwatch) {
+              const rect = firstSwatch.getBoundingClientRect();
+              const containerRect = swatchesContainer.getBoundingClientRect();
+              
+              // Get the center of the first swatch
+              const firstSwatchCenterX = rect.left - containerRect.left + rect.width / 2;
+              const firstSwatchCenterY = rect.top - containerRect.top + rect.height / 2;
+              
+              // Calculate the first inside button position (between first and second swatches)
+              // We can't use getBoundingClientRect() because the button isn't in DOM yet
+              // So we'll calculate it based on the swatch positions
+              const secondSwatch = swatches[1];
+              if (secondSwatch) {
+                const secondSwatchRect = secondSwatch.getBoundingClientRect();
+                const secondSwatchCenterX = secondSwatchRect.left - containerRect.left + secondSwatchRect.width / 2;
+                
+                // The first inside button is centered between first and second swatches
+                const firstInsideButtonCenterX = (firstSwatchCenterX + secondSwatchCenterX) / 2;
+                
+                // Calculate the distance between first swatch center and first inside button center
+                const distance = firstInsideButtonCenterX - firstSwatchCenterX;
+                
+                // Position the L button the same distance to the left of the first swatch center
+                left = firstSwatchCenterX - distance;
+                // Keep the button at the same vertical level as the swatch center
+                top = firstSwatchCenterY;
+                button.style.transform = 'translate(-50%, -50%) scale(0)';
+                
+                // Button is now empty (no text)
+                button.innerHTML = '';
+              }
+            }
+          } else if (i === swatches.length) {
+            // Button at the end (after last swatch)
+            // Mirror the distance between last swatch center and second-to-last button
+            const lastSwatch = swatches[swatches.length - 1];
+            if (lastSwatch) {
+              const rect = lastSwatch.getBoundingClientRect();
+              const containerRect = swatchesContainer.getBoundingClientRect();
+              
+              // Get the center of the last swatch
+              const lastSwatchCenterX = rect.left - containerRect.left + rect.width / 2;
+              const lastSwatchCenterY = rect.top - containerRect.top + rect.height / 2;
+              
+              // Calculate the second-to-last button position (between second-to-last and last swatches)
+              // We can't use getBoundingClientRect() because the button isn't in DOM yet
+              // So we'll calculate it based on the swatch positions
+              const secondToLastSwatch = swatches[swatches.length - 2];
+              if (secondToLastSwatch) {
+                const secondToLastSwatchRect = secondToLastSwatch.getBoundingClientRect();
+                const secondToLastSwatchCenterX = secondToLastSwatchRect.left - containerRect.left + secondToLastSwatchRect.width / 2;
+                
+                // The second-to-last button is centered between second-to-last and last swatches
+                const secondToLastButtonCenterX = (secondToLastSwatchCenterX + lastSwatchCenterX) / 2;
+                
+                // Calculate the distance between last swatch center and second-to-last button center
+                const distance = lastSwatchCenterX - secondToLastButtonCenterX;
+                
+                // Position the R button the same distance to the right of the last swatch center
+                left = lastSwatchCenterX + distance;
+                // Keep the button at the same vertical level as the swatch center
+                top = lastSwatchCenterY;
+                button.style.transform = 'translate(-50%, -50%) scale(0)';
+                
+                // Button is now empty (no text)
+                button.innerHTML = '';
+              }
+            }
+          } else {
+            // Button between swatches
+            const swatchI1 = swatches[i-1];
+            const swatchI = swatches[i];
+            
+            if (swatchI1 && swatchI) {
+              const rect1 = swatchI1.getBoundingClientRect();
+              const rect2 = swatchI.getBoundingClientRect();
+              const containerRect = swatchesContainer.getBoundingClientRect();
+              
+              // Center between the two swatches
+              const center1X = rect1.left - containerRect.left + rect1.width / 2;
+              const center2X = rect2.left - containerRect.left + rect2.width / 2;
+              const center1Y = rect1.top - containerRect.top + rect1.height / 2;
+              const center2Y = rect2.top - containerRect.top + rect2.height / 2;
+              
+              left = (center1X + center2X) / 2;
+              top = (center1Y + center2Y) / 2;
+              button.style.transform = 'translate(-50%, -50%) scale(0)';
+            }
+          }
+          
+          button.style.left = `${left}px`;
+          button.style.top = `${top}px`;
+          
+          // Show button with animation
+          requestAnimationFrame(() => {
+            button.classList.add('visible');
+            button.style.transform = 'translate(-50%, -50%) scale(1)';
+          });
+        }
+      }
+    }
+
+    function hideMoveButtons(palette) {
+      // Fade out move buttons smoothly before removing them
+      palette.querySelectorAll('.move-button').forEach(button => {
+        button.style.transition = 'opacity 0.15s ease-out';
+        button.style.opacity = '0';
+        
+        // Remove from DOM after fade animation completes
+        setTimeout(() => {
+          if (button.parentNode) {
+            button.parentNode.removeChild(button);
+          }
+        }, 150);
+      });
+    }
+
+    function showColorAdjustmentPane(swatch) {
+      // Remove any existing color adjustment pane
+      hideColorAdjustmentPane(swatch);
+      
+      // Create the color adjustment pane
+      const pane = createColorAdjustmentPane(swatch);
+      
+      // Position the pane relative to the viewport, below the swatch
+      const swatchRect = swatch.getBoundingClientRect();
+      const paneWidth = 220; // min-width from CSS
+      
+      // Calculate position: below the swatch, centered horizontally
+      let left = swatchRect.left + (swatchRect.width / 2) - (paneWidth / 2);
+      let top = swatchRect.bottom + 8; // 8px gap below swatch
+      
+      // Ensure pane doesn't go off-screen
+      if (left < 20) left = 20; // Keep 20px from left edge
+      if (left + paneWidth > window.innerWidth - 20) left = window.innerWidth - paneWidth - 20; // Keep 20px from right edge
+      if (top + 200 > window.innerHeight - 20) { // If pane would go below viewport
+        top = swatchRect.top - 200 - 8; // Position above swatch instead
+      }
+      
+      // Apply positioning
+      pane.style.left = left + 'px';
+      pane.style.top = top + 'px';
+      
+      // Add to body instead of swatch for fixed positioning
+      document.body.appendChild(pane);
+      
+      // Show the pane with animation
+      requestAnimationFrame(() => {
+        pane.classList.add('visible');
+      });
+      
+      // Store reference to the swatch for scroll tracking
+      pane.dataset.targetSwatch = swatch.dataset.swatchId;
+      
+      // Add scroll event listener to update pane position
+      const updatePanePosition = () => {
+        if (swatch && swatch.isConnected) { // Check if swatch still exists in DOM
+          const newSwatchRect = swatch.getBoundingClientRect();
+          const newLeft = newSwatchRect.left + (newSwatchRect.width / 2) - (paneWidth / 2);
+          let newTop = newSwatchRect.bottom + 8;
+          
+          // Ensure pane doesn't go off-screen
+          if (newLeft < 20) newLeft = 20;
+          if (newLeft + paneWidth > window.innerWidth - 20) newLeft = window.innerWidth - paneWidth - 20;
+          if (newTop + 200 > window.innerHeight - 20) {
+            newTop = newSwatchRect.top - 200 - 8;
+          }
+          
+          // Update pane position
+          pane.style.left = newLeft + 'px';
+          pane.style.top = newTop + 'px';
+        }
+      };
+      
+      // Add scroll listeners to all scrollable containers
+      const scrollContainers = [window, document.documentElement, document.body];
+      scrollContainers.forEach(container => {
+        container.addEventListener('scroll', updatePanePosition, { passive: true });
+      });
+      
+      // Store the update function on the pane for cleanup
+      pane._updatePosition = updatePanePosition;
+      pane._scrollContainers = scrollContainers;
+    }
+
+    function hideColorAdjustmentPane(swatch) {
+      // Find any existing color adjustment pane in the body
+      const existingPane = document.querySelector('.color-adjustment-pane');
+      if (existingPane) {
+        // Clean up scroll event listeners
+        if (existingPane._scrollContainers) {
+          existingPane._scrollContainers.forEach(container => {
+            container.removeEventListener('scroll', existingPane._updatePosition);
+          });
+        }
+        
+        existingPane.classList.remove('visible');
+        setTimeout(() => {
+          if (existingPane.parentNode) {
+            existingPane.remove();
+          }
+        }, 300); // Match the CSS transition duration
+      }
+    }
+
+    function moveSwatchToPosition(swatch, targetPosition, palette) {
+      if (isAnimating) return;
+      isAnimating = true;
+      
+      const swatches = Array.from(palette.querySelectorAll('.swatch'));
+      const currentIndex = swatches.indexOf(swatch);
+      const swatchesContainer = palette.querySelector('.swatches');
+      
+      console.log(`Moving swatch from position ${currentIndex} to position ${targetPosition}`);
+      console.log(`Current swatches:`, swatches.map(s => s.getAttribute('data-hex')));
+      
+      // Step 1: Capture the current positions of all swatches for FLIP animation
+      const initialPositions = new Map();
+      swatches.forEach((s, index) => {
+        const rect = s.getBoundingClientRect();
+        const containerRect = swatchesContainer.getBoundingClientRect();
+        initialPositions.set(s, {
+          left: rect.left - containerRect.left,
+          top: rect.top - containerRect.top,
+          index: index
+        });
+      });
+      
+      // Step 2: Remove the swatch and insert it at the target position
+      swatch.remove();
+      
+      if (targetPosition === 0) {
+        // Insert at the beginning
+        swatchesContainer.insertBefore(swatch, swatchesContainer.firstChild);
+        console.log('Inserted at beginning');
+      } else if (targetPosition >= swatches.length) {
+        // Insert at the end
+        swatchesContainer.appendChild(swatch);
+        console.log('Inserted at end');
+      } else {
+        // Insert at specific position
+        const targetSwatch = swatches[targetPosition];
+        swatchesContainer.insertBefore(swatch, targetSwatch);
+        console.log(`Inserted before ${targetSwatch.getAttribute('data-hex')}`);
+      }
+      
+      // Step 3: Apply FLIP animation - Invert (I) and Play (P)
+      requestAnimationFrame(() => {
+        console.log('Step 3: Inverting positions for FLIP animation');
+        swatches.forEach(s => {
+          const initial = initialPositions.get(s);
+          if (initial) {
+            const finalRect = s.getBoundingClientRect();
+            const containerRect = swatchesContainer.getBoundingClientRect();
+            
+            const finalLeft = finalRect.left - containerRect.left;
+            const finalTop = finalRect.top - containerRect.top;
+            
+            // Calculate the difference to move back to initial position
+            const deltaX = initial.left - finalLeft;
+            const deltaY = initial.top - finalTop;
+            
+            console.log(`Swatch ${s.getAttribute('data-hex')}: delta(${deltaX.toFixed(1)}, ${deltaY.toFixed(1)})`);
+            
+            // Apply the inverse transform to make it appear at initial position
+            s.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+            s.style.transition = 'none';
+            s.classList.add('moving');
+          }
+        });
+        
+        // Step 4: Play - Animate to final positions
+        requestAnimationFrame(() => {
+          console.log('Step 4: Animating to final positions');
+          swatches.forEach(s => {
+            s.style.transition = 'transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+            s.style.transform = 'translate(0, 0)';
+          });
+          
+          // Clean up after animation
+          setTimeout(() => {
+            swatches.forEach(s => {
+              s.classList.remove('moving');
+              s.style.transition = '';
+              s.style.transform = '';
+            });
+            
+            // Log the new order
+            const newSwatches = Array.from(palette.querySelectorAll('.swatch'));
+            console.log('New swatches order:', newSwatches.map(s => s.getAttribute('data-hex')));
+            
+            // Complete reset: deselect swatch, hide buttons, reset state
+            selectedSwatch.classList.remove('selected');
+            selectedSwatch = null;
+            
+            // Hide all move buttons
+            hideMoveButtons(palette);
+            
+            // No need to reposition add button since it's now in the toolbar
+            
+            // Reset animation state
+            isAnimating = false;
+            
+            // Auto-save after moving
+            savePalettesToStorage();
+            
+            // Adjust swatch sizes to fit without wrapping
+            adjustSwatchSizes(palette);
+          }, 350);
+        });
+      });
+    }
+
+    function swapSwatches(swatch1, swatch2) {
+      isAnimating = true;
+      
+      // Determine which swatch was selected and maintain its high z-index
+      const wasSelected = swatch1.classList.contains('selected');
+      if (wasSelected) {
+        // Keep the selected swatch on top during the entire swap animation
+        swatch1.style.zIndex = '999';
+        console.log('Selected swatch z-index set to 999 for swap animation');
+      }
+      
+      // Remove selection from first swatch
+      swatch1.classList.remove('selected');
+      
+      // Add swapping class for smooth animation
+      swatch1.classList.add('swapping');
+      swatch2.classList.add('swapping');
+      
+      // Store the original positions before any hover effects
+      const originalRect1 = swatch1.getBoundingClientRect();
+      const originalRect2 = swatch2.getBoundingClientRect();
+      
+      // Calculate the difference between centers using original positions
+      const center1X = originalRect1.left + originalRect1.width / 2;
+      const center1Y = originalRect1.top + originalRect1.height / 2;
+      const center2X = originalRect2.left + originalRect2.width / 2;
+      const center2Y = originalRect2.top + originalRect2.height / 2;
+      
+      const deltaX = center2X - center1X;
+      const deltaY = center2Y - center1Y;
+      
+      // Separate scaling from movement - scaling should be instant
+      swatch1.style.transition = 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      swatch2.style.transition = 'transform 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      
+      // Remove scaling first, then apply movement
+      swatch1.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+      swatch2.style.transform = `translate(${-deltaX}px, ${-deltaY}px)`;
+      
+      // After animation, swap in DOM and reset
+      setTimeout(() => {
+        // Swap the swatches in the DOM using a more reliable method
+        const parent1 = swatch1.parentNode;
+        const parent2 = swatch2.parentNode;
+        
+        if (parent1 === parent2) {
+          // Same parent - use a temporary placeholder to avoid shifting issues
+          const temp = document.createElement('div');
+          parent1.insertBefore(temp, swatch1);
+          parent1.insertBefore(swatch1, swatch2);
+          parent1.insertBefore(swatch2, temp);
+          parent1.removeChild(temp);
+        } else {
+          // Different parents - swap between them
+          parent1.insertBefore(swatch2, swatch1);
+          parent2.insertBefore(swatch1, swatch2);
+        }
+        
+        // Reset transforms, transitions and classes
+        swatch1.style.transform = '';
+        swatch2.style.transform = '';
+        swatch1.style.transition = '';
+        swatch2.style.transition = '';
+        swatch1.classList.remove('swapping');
+        swatch2.classList.remove('swapping');
+        
+        // Reset z-index values
+        swatch1.style.zIndex = '';
+        swatch2.style.zIndex = '';
+        
+        // No swatch selected after swap
+        selectedSwatch = null;
+        
+        isAnimating = false;
+        
+        // No need to reposition add button since it's now in the toolbar
+        
+        // Auto-save after swapping
+        savePalettesToStorage();
+        
+        // Adjust swatch sizes to fit without wrapping
+        adjustSwatchSizes(palette);
+      }, 350);
+    }
+
+    function hideAllSwapButtons() {
+      document.querySelectorAll('.swap-button').forEach(button => {
+        button.classList.remove('visible');
+      });
+    }
+
+    // Tooltip functionality for sort buttons
+    let currentTooltip = null;
+
+    function getSortTooltipText(sortType) {
+      const tooltipTexts = {
+        'intensity': 'Sort by Intensity',
+        'hue': 'Sort by Hue',
+        'saturation': 'Sort by Saturation',
+        'rgb': 'Sort by RGB'
+      };
+      return tooltipTexts[sortType] || 'Sort';
+    }
+
+    function showSortTooltip(button, text) {
+      // Remove existing tooltip
+      if (currentTooltip) {
+        currentTooltip.remove();
+      }
+      
+      // Create new tooltip
+      currentTooltip = document.createElement('div');
+      currentTooltip.className = 'sort-tooltip';
+      currentTooltip.textContent = text;
+      document.body.appendChild(currentTooltip);
+      
+      // Position tooltip initially near the button
+      const buttonRect = button.getBoundingClientRect();
+      updateSortTooltipPosition({ 
+        clientX: buttonRect.left + buttonRect.width / 2, 
+        clientY: buttonRect.top + buttonRect.height / 2
+      });
+      
+      // Show tooltip instantly
+      currentTooltip.classList.add('visible');
+    }
+
+    function hideSortTooltip() {
+      if (currentTooltip) {
+        currentTooltip.classList.remove('visible');
+        currentTooltip.remove();
+        currentTooltip = null;
+      }
+    }
+
+    function updateSortTooltipPosition(e) {
+      if (currentTooltip) {
+        const tooltipRect = currentTooltip.getBoundingClientRect();
+        
+        // Position tooltip to follow cursor 1:1
+        let left = e.clientX + 10; // Offset slightly to the right of cursor
+        let top = e.clientY + 10;  // Offset slightly below cursor
+        
+        // Ensure tooltip stays within viewport
+        if (left + tooltipRect.width > window.innerWidth - 10) {
+          left = e.clientX - tooltipRect.width - 10; // Show to the left of cursor
+        }
+        if (top + tooltipRect.height > window.innerHeight - 10) {
+          top = e.clientY - tooltipRect.height - 10; // Show above cursor
+        }
+        
+        currentTooltip.style.left = `${left}px`;
+        currentTooltip.style.top = `${top}px`;
+      }
+    }
+
+    // Hover controls functionality for swatches
+    function createSwatchControls(swatch) {
+      const controlsContainer = document.createElement('div');
+      controlsContainer.className = 'swatch-controls';
+      
+      // Delete button (X)
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'swatch-control-btn delete';
+      deleteBtn.innerHTML = '×';
+      deleteBtn.title = 'Delete swatch';
+      
+      // Enter frozen state on hover to prevent centering on first delete
+      deleteBtn.addEventListener('mouseenter', handleDeleteButtonHover);
+      deleteBtn.addEventListener('click', handleDeleteSwatch);
+      
+      // Lock button
+      const lockBtn = document.createElement('button');
+      lockBtn.className = 'swatch-control-btn lock';
+      
+      // Check initial lock status
+      const isLocked = swatch.dataset.locked === 'true';
+      if (isLocked) {
+        lockBtn.classList.add('locked');
+        lockBtn.innerHTML = '🔒';
+        lockBtn.title = 'Unlock swatch';
+        // Make lock button always visible when locked
+        lockBtn.style.opacity = '1';
+        lockBtn.style.pointerEvents = 'auto';
+      } else {
+        lockBtn.innerHTML = '🔓';
+        lockBtn.title = 'Lock swatch';
+      }
+      
+      lockBtn.addEventListener('click', handleLockSwatch);
+      
+      // Randomize button
+      const randomizeBtn = document.createElement('button');
+      randomizeBtn.className = 'swatch-control-btn randomize';
+      randomizeBtn.innerHTML = '🎲';
+      randomizeBtn.title = 'Randomize color';
+      randomizeBtn.addEventListener('click', handleRandomizeSwatch);
+      
+      // Add buttons to container
+      controlsContainer.appendChild(deleteBtn);
+      controlsContainer.appendChild(lockBtn);
+      controlsContainer.appendChild(randomizeBtn);
+      
+      return controlsContainer;
+    }
+
+    // Handle delete button hover - enter frozen state to prevent centering
+    function handleDeleteButtonHover(event) {
+      const button = event.currentTarget;
+      const swatch = button.closest('.swatch');
+      const palette = swatch.closest('.palette');
+      
+      if (swatch && palette) {
+        console.log('Delete button hover - entering frozen state');
+        
+        const swatchesContainer = palette.querySelector('.swatches');
+        const swatches = palette.querySelectorAll('.swatch');
+        
+        // Set global flag to prevent any swatch sizing during the shift
+        isInstantShifting = true;
+        
+        // Temporarily disable ALL transitions for instant movement
+        swatchesContainer.style.transition = 'none';
+        swatchesContainer.style.setProperty('transition', 'none', 'important');
+        
+        // Store current swatch dimensions and positions to prevent resizing during instant shift
+        const swatchData = Array.from(swatches).map(swatch => {
+          const computedStyle = getComputedStyle(swatch);
+          const rect = swatch.getBoundingClientRect();
+          return {
+            element: swatch,
+            width: computedStyle.width,
+            height: computedStyle.height,
+            left: rect.left,
+            top: rect.top
+          };
+        });
+        
+        // CRITICAL: Override the CSS centering to prevent automatic recentering during shift
+        const containerRect = swatchesContainer.getBoundingClientRect();
+        const firstSwatchRect = swatchData[0].element.getBoundingClientRect();
+        const leftOffset = firstSwatchRect.left - containerRect.left;
+        
+        // Force the override immediately and make it more specific to override CSS
+        swatchesContainer.style.setProperty('justify-content', 'flex-start', 'important');
+        
+        // Add left padding to maintain the left side position
+        swatchesContainer.style.paddingLeft = `${leftOffset}px`;
+        
+        // Store the swatch data on the button for use during deletion
+        button.swatchData = swatchData;
+        
+        // Force a reflow to ensure the override is applied
+        swatchesContainer.offsetHeight;
+        
+        console.log('Frozen state applied - palette should now be frozen');
+        console.log('Initial left padding set to:', leftOffset, 'px');
+      }
+    }
+
+    function handleDeleteSwatch(event) {
+      event.stopPropagation(); // Prevent swatch selection
+      
+      const button = event.currentTarget;
+      const swatch = button.closest('.swatch');
+      const palette = swatch.closest('.palette');
+      
+      if (swatch && palette) {
+        const swatchesContainer = palette.querySelector('.swatches');
+        
+        // Use the pre-frozen state data
+        const swatchData = button.swatchData;
+        
+        // Remove the swatch
+        swatch.remove();
+        
+        // Update original orders
+        const swatches = Array.from(palette.querySelectorAll('.swatch'));
+        originalOrders.set(palette, swatches);
+        
+        // Update add button state
+        updateAddColorButtonState(palette);
+        
+        // Auto-save the palette
+        savePalettesToStorage();
+        
+        // Lock swatch dimensions during the instant shift to prevent resizing
+        swatchData.forEach(({ element, width, height }) => {
+          element.style.width = width;
+          element.style.minWidth = width;
+          element.style.maxWidth = width;
+          element.style.height = height;
+        });
+        
+
+        
+        // Force a reflow to ensure everything is stable
+        swatchesContainer.offsetHeight;
+        
+        // If this was the selected swatch, clear selection
+        if (selectedSwatch === swatch) {
+          selectedSwatch = null;
+          hideMoveButtons(palette);
+        }
+        
+        // Add mouse leave event to the PALETTE for recentering (more reliable than swatch)
+        console.log('Setting up mouse leave event on palette for unfreezing');
+        palette.addEventListener('mouseleave', function onPaletteLeave() {
+          console.log('Palette mouse leave triggered - unfreezing palette');
+          
+          // Small delay to ensure instant shift is visible, then recenter
+          setTimeout(() => {
+            // Clear the stored swatch data
+            delete button.swatchData;
+            
+            // Use the centralized unfreeze function
+            unfreezePalette(palette);
+          }, 50); // 50ms delay for visual feedback
+        });
+        
+        // Also add mouse enter event to the toolbar to unfreeze when accessing Add Color
+        const toolbar = palette.querySelector('.palette-header');
+        if (toolbar) {
+          console.log('Setting up mouse enter event on toolbar for unfreezing');
+          toolbar.addEventListener('mouseenter', function onToolbarEnter() {
+            console.log('Toolbar mouse enter triggered - unfreezing palette for Add Color');
+            
+            // Clear the stored swatch data
+            delete button.swatchData;
+            
+            // Use the centralized unfreeze function
+            unfreezePalette(palette);
+          });
+        }
+      }
+    }
+
+    function handleLockSwatch(event) {
+      event.stopPropagation(); // Prevent swatch selection
+      
+      const button = event.currentTarget;
+      const swatch = button.closest('.swatch');
+      
+      if (swatch) {
+        // Toggle lock status
+        const isLocked = swatch.dataset.locked === 'true';
+        swatch.dataset.locked = !isLocked;
+        
+        // Update button appearance and visibility
+        if (!isLocked) {
+          button.classList.add('locked');
+          button.innerHTML = '🔒';
+          button.title = 'Unlock swatch';
+          // Make lock button always visible when locked
+          button.style.opacity = '1';
+          button.style.pointerEvents = 'auto';
+        } else {
+          button.classList.remove('locked');
+          button.innerHTML = '🔓';
+          button.title = 'Lock swatch';
+          // Reset to default visibility when unlocked
+          button.style.opacity = '';
+          button.style.pointerEvents = '';
+        }
+        
+        // Auto-save the palette
+        const palette = swatch.closest('.palette');
+        savePalettesToStorage();
+      }
+    }
+
+    function handleRandomizeSwatch(event) {
+      event.stopPropagation(); // Prevent swatch selection
+      
+      const button = event.currentTarget;
+      const swatch = button.closest('.swatch');
+      
+      if (swatch) {
+        // Check if swatch is locked
+        if (swatch.dataset.locked === 'true') {
+          // Show brief feedback that swatch is locked
+          button.style.transform = 'scale(1.2)';
+          setTimeout(() => {
+            button.style.transform = 'scale(1)';
+          }, 200);
+          return;
+        }
+        
+        // Generate new related color based on existing colors in the palette
+        const swatchPalette = swatch.closest('.palette');
+        const allSwatches = swatchPalette.querySelectorAll('.swatch');
+        const existingColors = extractColorDataFromSwatches(allSwatches);
+        
+        // Debug the margins being used
+        debugMargins();
+        
+        const newColor = generateRelatedColor(existingColors);
+        swatch.style.background = newColor.hex;
+        
+        // Update data attributes instead of CSS custom properties
+        swatch.setAttribute('data-rgb', `RGB(${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b})`);
+        swatch.setAttribute('data-hsv', `HSV(${newColor.hsv.h}, ${newColor.hsv.s}%, ${newColor.hsv.v}%)`);
+        swatch.setAttribute('data-hex', newColor.hex);
+        
+        // Also update the text content of the elements
+        const rgbLabel = swatch.querySelector('.rgb-label');
+        const hsvLabel = swatch.querySelector('.hsv-label');
+        const hexLabel = swatch.querySelector('.label');
+        
+        if (rgbLabel) {
+          rgbLabel.textContent = `RGB(${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b})`;
+          // Ensure click event listener is attached for clipboard functionality
+          if (!rgbLabel.hasAttribute('data-clipboard-bound')) {
+            rgbLabel.addEventListener('click', (e) => {
+              e.stopPropagation(); // Prevent swatch selection
+              const rgbText = swatch.getAttribute('data-rgb');
+              copyToClipboard(rgbText, e);
+            });
+            rgbLabel.setAttribute('data-clipboard-bound', 'true');
+          }
+        }
+        if (hsvLabel) {
+          hsvLabel.textContent = `HSV(${newColor.hsv.h}, ${newColor.hsv.s}%, ${newColor.hsv.v}%)`;
+          // Ensure click event listener is attached for clipboard functionality
+          if (!hsvLabel.hasAttribute('data-clipboard-bound')) {
+            hsvLabel.addEventListener('click', (e) => {
+              e.stopPropagation(); // Prevent swatch selection
+              const hsvText = swatch.getAttribute('data-hsv');
+              copyToClipboard(hsvText, e);
+            });
+            hsvLabel.setAttribute('data-clipboard-bound', 'true');
+          }
+        }
+        if (hexLabel) {
+          hexLabel.textContent = newColor.hex;
+          // Ensure click event listener is attached for clipboard functionality
+          if (!hexLabel.hasAttribute('data-clipboard-bound')) {
+            hexLabel.addEventListener('click', (e) => {
+              e.stopPropagation(); // Prevent swatch selection
+              const hexText = swatch.getAttribute('data-hex');
+              copyToClipboard(hexText, e);
+            });
+            hexLabel.setAttribute('data-clipboard-bound', 'true');
+          }
+        }
+        
+        // Add animation effect
+        swatch.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          swatch.style.transform = 'scale(1)';
+        }, 150);
+        
+        // Auto-save the palette
+        savePalettesToStorage();
+        
+        // Adjust swatch sizes to fit without wrapping
+        adjustSwatchSizes(swatchPalette);
+      }
+    }
+
+    // Function to randomize all unlocked swatches in a palette
+    function randomizeAllUnlockedSwatches(palette) {
+      // Check if palette is locked
+      if (palette.dataset.locked === 'true') {
+        console.log('Cannot randomize locked palette');
+        return;
+      }
+      
+      // Always ensure palette is unfrozen before randomizing
+      if (isInstantShifting) {
+        console.log('Randomize button clicked - ensuring palette is unfrozen');
+        unfreezePalette(palette);
+      } else {
+        // Even if not frozen, ensure any potential frozen state is cleared
+        console.log('Randomize button clicked - ensuring clean palette state');
+        const swatchesContainer = palette.querySelector('.swatches');
+        if (swatchesContainer) {
+          // Clear any potential frozen styles
+          swatchesContainer.style.transition = '';
+          swatchesContainer.style.justifyContent = '';
+          swatchesContainer.style.paddingLeft = '';
+        }
+      }
+      
+      const swatches = palette.querySelectorAll('.swatch');
+      let randomizedCount = 0;
+      
+      // Extract all color data from swatches to use as reference for related colors
+      const allColorData = extractColorDataFromSwatches(swatches);
+      
+      // Debug the margins being used
+      debugMargins();
+      console.log('All color data for randomization:', allColorData);
+      
+      // Generate all new colors FIRST based on original colors, then apply them
+      const newColors = [];
+      const unlockedSwatches = [];
+      
+      // Collect unlocked swatches and generate new colors
+      swatches.forEach(swatch => {
+        if (swatch.dataset.locked !== 'true') {
+          unlockedSwatches.push(swatch);
+          console.log('Generating new color for swatch:', swatch.getAttribute('data-hex'));
+          // Generate new related color based on ORIGINAL colors (not already changed ones)
+          const newColor = generateRelatedColor(allColorData);
+          newColors.push(newColor);
+        }
+      });
+      
+      // Now apply all the new colors at once
+      unlockedSwatches.forEach((swatch, index) => {
+        const newColor = newColors[index];
+        console.log('Applying new color:', newColor.hex, 'to swatch:', swatch.getAttribute('data-hex'));
+        
+        swatch.style.background = newColor.hex;
+        
+        // Update data attributes
+        swatch.setAttribute('data-rgb', `RGB(${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b})`);
+        swatch.setAttribute('data-hsv', `HSV(${newColor.hsv.h}, ${newColor.hsv.s}%, ${newColor.hsv.v}%)`);
+        swatch.setAttribute('data-hex', newColor.hex);
+        
+        // Update the text content of the labels
+        const rgbLabel = swatch.querySelector('.rgb-label');
+        const hsvLabel = swatch.querySelector('.hsv-label');
+        const hexLabel = swatch.querySelector('.hex-label');
+        
+        if (rgbLabel) {
+          rgbLabel.textContent = `RGB(${newColor.rgb.r}, ${newColor.rgb.g}, ${newColor.rgb.b})`;
+        }
+        if (hsvLabel) {
+          hsvLabel.textContent = `HSV(${newColor.hsv.h}, ${newColor.hsv.s}%, ${newColor.hsv.v}%)`;
+        }
+        if (hexLabel) {
+          hexLabel.textContent = newColor.hex;
+        }
+        
+        randomizedCount++;
+      });
+      
+      // Auto-save the palette and adjust swatch sizes if any swatches were randomized
+      if (randomizedCount > 0) {
+        // Auto-save the palette
+        savePalettesToStorage();
+        
+        // Adjust swatch sizes to fit without wrapping
+        adjustSwatchSizes(palette);
+        
+        // Force recentering after randomizing
+        const recenterContainer = palette.querySelector('.swatches');
+        if (recenterContainer) {
+          const recenterSwatches = palette.querySelectorAll('.swatch');
+          if (recenterSwatches.length <= 5) {
+            // Always center when we have 5 or fewer swatches
+            recenterContainer.style.justifyContent = 'center';
+          }
+        }
+      }
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM loaded, initializing...');
+      // Initialize settings panel first
+      initializeSettingsPanel();
+      
+      // initializeSwatches() will be called after palettes are loaded from storage
+      console.log('Initializing sort controls...');
+      initializeSortControls();
+      console.log('Loading palettes from storage...');
+      loadPalettesFromStorage(); // Load saved palettes on page load
+      
+      // Add event listener for New Palette button
+      document.getElementById('new-palette').addEventListener('click', createNewPalette);
+      
+      // Add event listener for Import Palette button
+      document.getElementById('import-palette').addEventListener('click', openImportModal);
+      
+      // Add event listeners for modal buttons
+      document.getElementById('import-modal-close').addEventListener('click', closeImportModal);
+      document.getElementById('import-modal-cancel').addEventListener('click', closeImportModal);
+      document.getElementById('import-modal-submit').addEventListener('click', handleImportSubmit);
+      
+      // Add outside click handler for modal
+      document.getElementById('import-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'import-modal') {
+          closeImportModal();
+        }
+      });
+      
+      // Add Enter key handler for import textarea
+      document.getElementById('import-colors-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          e.preventDefault();
+          handleImportSubmit();
+        }
+      });
+      
+      // Add document click handler to deselect swatches when clicking away
+      document.addEventListener('click', (e) => {
+        // Check if the click is on a swatch or swatch-related element
+        const isSwatchClick = e.target.closest('.swatch') || 
+                             e.target.closest('.move-button') || 
+                             e.target.closest('.swap-button') ||
+                             e.target.closest('.swatch-controls') ||
+                             e.target.closest('.swatch-control-btn') ||
+                             e.target.closest('.color-adjustment-pane');
+        
+        // If clicking away from swatches and there's a selected swatch, deselect it
+        if (!isSwatchClick && selectedSwatch) {
+          const palette = selectedSwatch.closest('.palette');
+          selectedSwatch.classList.remove('selected');
+          hideColorAdjustmentPane(selectedSwatch);
+          selectedSwatch = null;
+          hideMoveButtons(palette);
+          hideAllSwapButtons();
+        }
+      });
+      
+      // Add resize event listener to adjust swatch sizes when window is resized
+      let resizeTimeout;
+      window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+          const palettes = document.querySelectorAll('.palette');
+          palettes.forEach(palette => {
+            adjustSwatchSizes(palette);
+            ensureSwatchLabels(palette);
+          });
+          
+          // Reposition color adjustment pane if it's visible
+          if (selectedSwatch) {
+            const existingPane = document.querySelector('.color-adjustment-pane');
+            if (existingPane && existingPane.classList.contains('visible')) {
+              // Trigger position update for the pane
+              if (existingPane._updatePosition) {
+                existingPane._updatePosition();
+              }
+            }
+          }
+        }, 100); // Debounce resize events
+      });
+      
+      // Ensure all existing palettes have RGB and HSV labels after a short delay
+      setTimeout(() => {
+        const palettes = document.querySelectorAll('.palette');
+        palettes.forEach(palette => {
+          ensureSwatchLabels(palette);
+        });
+      }, 200);
+      
+      // Add global mouse move listener to catch toolbar movement and unfreeze palettes
+      document.addEventListener('mousemove', (e) => {
+        // Only check if we have frozen palettes
+        if (isInstantShifting) {
+          const elementUnderMouse = document.elementFromPoint(e.clientX, e.clientY);
+          if (elementUnderMouse) {
+            // Check if mouse is over any toolbar element
+            const isOverToolbar = elementUnderMouse.closest('.palette-header') ||
+                                  elementUnderMouse.closest('.add-swatch-toolbar') ||
+                                  elementUnderMouse.closest('.randomize-all-toolbar') ||
+                                  elementUnderMouse.closest('.sort-controls') ||
+                                  elementUnderMouse.closest('.delete-controls') ||
+                                  elementUnderMouse.closest('.sort-btn') ||
+                                  elementUnderMouse.closest('.delete-main-btn');
+            
+            if (isOverToolbar) {
+              // Find the palette this toolbar belongs to
+              const palette = elementUnderMouse.closest('.palette');
+              if (palette) {
+                console.log('Global mouse move detected toolbar hover - unfreezing palette');
+                unfreezePalette(palette);
+              }
+            }
+          }
+        }
+      });
+    });
+
+    // Helper function to convert hex to RGB
+    function hexToRgb(hex) {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : { r: 0, g: 0, b: 0 };
+    }
+
+    // Helper function to convert RGB to HSV
+    function rgbToHsv(r, g, b) {
+      r /= 255;
+      g /= 255;
+      b /= 255;
+
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const diff = max - min;
+
+      let h, s, v = max;
+
+      if (diff === 0) {
+        h = 0;
+      } else if (max === r) {
+        h = ((g - b) / diff) % 6;
+      } else if (max === g) {
+        h = (b - r) / diff + 2;
+      } else {
+        h = (r - g) / diff + 4;
+      }
+
+      h = Math.round(h * 60);
+      if (h < 0) h += 360;
+
+      s = max === 0 ? 0 : Math.round((diff / max) * 100);
+      v = Math.round(max * 100);
+
+      return { h, s, v };
+    }
+
+    // Helper function to convert HSV to RGB
+    function hsvToRgb(h, s, v) {
+      h = h / 360;
+      s = s / 100;
+      v = v / 100;
+
+      const i = Math.floor(h * 6);
+      const f = h * 6 - i;
+      const p = v * (1 - s);
+      const q = v * (1 - f * s);
+      const t = v * (1 - (1 - f) * s);
+
+      let r, g, b;
+      switch (i % 6) {
+        case 0: r = v; g = t; b = p; break;
+        case 1: r = q; g = v; b = p; break;
+        case 2: r = p; g = v; b = t; break;
+        case 3: r = p; g = q; b = v; break;
+        case 4: r = t; g = p; b = v; break;
+        case 5: r = v; g = p; b = q; break;
+      }
+
+      return {
+        r: Math.round(r * 255),
+        g: Math.round(g * 255),
+        b: Math.round(b * 255)
+      };
+    }
+
+    // Helper function to convert RGB to hex
+    function rgbToHex(r, g, b) {
+      const toHex = (c) => {
+        const hex = c.toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      };
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+    }
+
+
+
+    // Settings Panel Functionality
+    function initializeSettingsPanel() {
+      const hexButton = document.getElementById('show-hex');
+      const rgbButton = document.getElementById('show-rgb');
+      const hsvButton = document.getElementById('show-hsv');
+      const minSaturationSlider = document.getElementById('saturation-range-min');
+      const maxSaturationSlider = document.getElementById('saturation-range-max');
+      const minLightnessSlider = document.getElementById('lightness-range-min');
+      const maxLightnessSlider = document.getElementById('lightness-range-max');
+      const hueVariationSlider = document.getElementById('hue-variation');
+      
+      // Load saved settings
+      loadSettings();
+      
+      // Handle toggle button clicks
+      hexButton.addEventListener('click', () => toggleSetting(hexButton, 'hex'));
+      rgbButton.addEventListener('click', () => toggleSetting(rgbButton, 'rgb'));
+      hsvButton.addEventListener('click', () => toggleSetting(hsvButton, 'hsv'));
+      
+      // Handle range slider changes
+      minSaturationSlider.addEventListener('input', (e) => {
+        const minVal = parseInt(e.target.value);
+        const maxVal = parseInt(maxSaturationSlider.value);
+        
+        // If min is getting too close to max, push max up to maintain 10% gap
+        if (minVal >= maxVal - 10) {
+          const newMaxVal = minVal + 10;
+          if (newMaxVal <= 100) {
+            maxSaturationSlider.value = newMaxVal;
+          } else {
+            // If we can't push max up, pull min back
+            e.target.value = maxVal - 10;
+          }
+        }
+        
+        updateRangeSliderValue('saturation-range-value', e.target.value, maxSaturationSlider.value, '%');
+        updateRangeSliderHighlight('saturation-range-min', 'saturation-range-max');
+        saveSettings();
+      });
+      
+      maxSaturationSlider.addEventListener('input', (e) => {
+        const maxVal = parseInt(e.target.value);
+        const minVal = parseInt(minSaturationSlider.value);
+        
+        // If max is getting too close to min, push min down to maintain 10% gap
+        if (maxVal <= minVal + 10) {
+          const newMinVal = maxVal - 10;
+          if (newMinVal >= 0) {
+            minSaturationSlider.value = newMinVal;
+          } else {
+            // If we can't push min down, pull max back
+            e.target.value = minVal + 10;
+          }
+        }
+        
+        updateRangeSliderValue('saturation-range-value', minSaturationSlider.value, e.target.value, '%');
+        updateRangeSliderHighlight('saturation-range-min', 'saturation-range-max');
+        saveSettings();
+      });
+      
+      minLightnessSlider.addEventListener('input', (e) => {
+        const minVal = parseInt(e.target.value);
+        const maxVal = parseInt(maxLightnessSlider.value);
+        
+        // If min is getting too close to max, push max up to maintain 10% gap
+        if (minVal >= maxVal - 10) {
+          const newMaxVal = minVal + 10;
+          if (newMaxVal <= 100) {
+            maxLightnessSlider.value = newMaxVal;
+          } else {
+            // If we can't push max up, pull min back
+            e.target.value = maxVal - 10;
+          }
+        }
+        
+        updateRangeSliderValue('lightness-range-value', e.target.value, maxLightnessSlider.value, '%');
+        updateRangeSliderHighlight('lightness-range-min', 'lightness-range-max');
+        saveSettings();
+      });
+      
+      maxLightnessSlider.addEventListener('input', (e) => {
+        const maxVal = parseInt(e.target.value);
+        const minVal = parseInt(minLightnessSlider.value);
+        
+        // If max is getting too close to min, push min down to maintain 10% gap
+        if (maxVal <= minVal + 10) {
+          const newMinVal = maxVal - 10;
+          if (newMinVal >= 0) {
+            minLightnessSlider.value = newMinVal;
+          } else {
+            // If we can't push max down, pull min back
+            e.target.value = minVal + 10;
+          }
+        }
+        
+        updateRangeSliderValue('lightness-range-value', minLightnessSlider.value, e.target.value, '%');
+        updateRangeSliderHighlight('lightness-range-min', 'lightness-range-max');
+        saveSettings();
+      });
+      
+      hueVariationSlider.addEventListener('input', (e) => {
+        updateSettingValue('hue-variation-value', e.target.value + '°');
+        saveSettings();
+      });
+    }
+    
+    function toggleSetting(button, settingType) {
+      button.classList.toggle('active');
+      updateSwatchLabels();
+    }
+    
+    function loadSettings() {
+      const hexButton = document.getElementById('show-hex');
+      const rgbButton = document.getElementById('show-rgb');
+      const hsvButton = document.getElementById('show-hsv');
+      const minSaturationSlider = document.getElementById('saturation-range-min');
+      const maxSaturationSlider = document.getElementById('saturation-range-max');
+      const minLightnessSlider = document.getElementById('lightness-range-min');
+      const maxLightnessSlider = document.getElementById('lightness-range-max');
+      const hueVariationSlider = document.getElementById('hue-variation');
+      
+      // Load from localStorage or use defaults
+      const settings = JSON.parse(localStorage.getItem('swatchSettings') || '{"hex": true, "rgb": false, "hsv": false, "minSaturation": 20, "maxSaturation": 80, "minLightness": 20, "maxLightness": 80, "hueVariation": 90}');
+      
+      // Ensure default values respect the 10% minimum gap
+      if (!settings.minSaturation || !settings.maxSaturation || (settings.maxSaturation - settings.minSaturation) < 10) {
+        settings.minSaturation = 20;
+        settings.maxSaturation = 80;
+      }
+      if (!settings.minLightness || !settings.maxLightness || (settings.maxLightness - settings.minLightness) < 10) {
+        settings.minLightness = 20;
+        settings.maxLightness = 80;
+      }
+      
+      console.log('Loading settings from localStorage:', settings);
+      
+      // Update button states based on saved settings
+      hexButton.classList.toggle('active', settings.hex);
+      rgbButton.classList.toggle('active', settings.rgb);
+      hsvButton.classList.toggle('active', settings.hsv);
+      
+      // Update range sliders
+      if (settings.minSaturation) {
+        minSaturationSlider.value = settings.minSaturation;
+      }
+      if (settings.maxSaturation) {
+        maxSaturationSlider.value = settings.maxSaturation;
+      }
+      if (settings.minLightness) {
+        minLightnessSlider.value = settings.minLightness;
+      }
+      if (settings.maxLightness) {
+        maxLightnessSlider.value = settings.maxLightness;
+      }
+      if (settings.hueVariation) {
+        hueVariationSlider.value = settings.hueVariation;
+        updateSettingValue('hue-variation-value', settings.hueVariation + '°');
+      }
+      
+      // Validate and fix any invalid settings to ensure 10% minimum gap
+      validateAndFixRangeSettings(minSaturationSlider, maxSaturationSlider);
+      validateAndFixRangeSettings(minLightnessSlider, maxLightnessSlider);
+      
+      // Update range slider displays and highlights
+      updateRangeSliderValue('saturation-range-value', minSaturationSlider.value, maxSaturationSlider.value, '%');
+      updateRangeSliderValue('lightness-range-value', minLightnessSlider.value, maxLightnessSlider.value, '%');
+      updateRangeSliderHighlight('saturation-range-min', 'saturation-range-max');
+      updateRangeSliderHighlight('lightness-range-min', 'lightness-range-max');
+      
+      console.log('Settings loaded:', settings);
+      
+      // Don't apply settings immediately - wait for palettes to be loaded
+    }
+    
+    function saveSettings() {
+      const hexButton = document.getElementById('show-hex');
+      const rgbButton = document.getElementById('show-rgb');
+      const hsvButton = document.getElementById('show-hsv');
+      const minSaturationSlider = document.getElementById('saturation-range-min');
+      const maxSaturationSlider = document.getElementById('saturation-range-max');
+      const minLightnessSlider = document.getElementById('lightness-range-min');
+      const maxLightnessSlider = document.getElementById('lightness-range-max');
+      const hueVariationSlider = document.getElementById('hue-variation');
+      
+      const settings = {
+        hex: hexButton.classList.contains('active'),
+        rgb: rgbButton.classList.contains('active'),
+        hsv: hsvButton.classList.contains('active'),
+        minSaturation: parseInt(minSaturationSlider.value),
+        maxSaturation: parseInt(maxSaturationSlider.value),
+        minLightness: parseInt(minLightnessSlider.value),
+        maxLightness: parseInt(maxLightnessSlider.value),
+        hueVariation: parseInt(hueVariationSlider.value)
+      };
+      
+      localStorage.setItem('swatchSettings', JSON.stringify(settings));
+    }
+    
+    // Helper function to update setting value displays
+    function updateSettingValue(elementId, value) {
+      const element = document.getElementById(elementId);
+      if (element) {
+        element.textContent = value;
+      }
+    }
+    
+
+    
+    function updateSwatchLabels(saveToStorage = true) {
+      const hexButton = document.getElementById('show-hex');
+      const rgbButton = document.getElementById('show-rgb');
+      const hsvButton = document.getElementById('show-hsv');
+      
+      console.log('updateSwatchLabels called with saveToStorage:', saveToStorage);
+      console.log('Current button states:', {
+        hex: hexButton.classList.contains('active'),
+        rgb: rgbButton.classList.contains('active'),
+        hsv: hsvButton.classList.contains('active')
+      });
+      
+      // Save settings only when explicitly requested (not during initialization)
+      if (saveToStorage) {
+        saveSettings();
+      }
+      
+      // Update all existing swatches
+      const allSwatches = document.querySelectorAll('.swatch');
+      allSwatches.forEach(swatch => {
+        const hexLabel = swatch.querySelector('.hex-label');
+        const rgbLabel = swatch.querySelector('.rgb-label');
+        const hsvLabel = swatch.querySelector('.hsv-label');
+        
+        if (hexLabel) {
+          hexLabel.classList.toggle('show', hexButton.classList.contains('active'));
+        }
+        if (rgbLabel) {
+          rgbLabel.classList.toggle('show', rgbButton.classList.contains('active'));
+        }
+        if (hsvLabel) {
+          hsvLabel.classList.toggle('show', hsvButton.classList.contains('active'));
+        }
+        
+        // Reposition visible labels
+        repositionSwatchLabels(swatch);
+      });
+    }
+    
+    function repositionSwatchLabels(swatch) {
+      // Get all visible labels in their DOM order
+      const allLabels = swatch.querySelectorAll('.hex-label, .rgb-label, .hsv-label');
+      const visibleLabels = Array.from(allLabels).filter(label => label.classList.contains('show'));
+      
+      if (visibleLabels.length === 0) {
+        return; // No labels to position
+      }
+      
+      // Position labels from bottom up
+      visibleLabels.forEach((label, index) => {
+        if (visibleLabels.length === 1) {
+          // Single label goes at the bottom
+          label.style.bottom = '0px';
+        } else if (visibleLabels.length === 2) {
+          // Two labels: first at 16px, second at 0px
+          label.style.bottom = index === 0 ? '16px' : '0px';
+        } else {
+          // Three labels: first at 32px, second at 16px, third at 0px
+          if (index === 0) label.style.bottom = '32px';
+          else if (index === 1) label.style.bottom = '16px';
+          else label.style.bottom = '0px';
+        }
+      });
+    }
+  </script>
+</body>
+</html>
