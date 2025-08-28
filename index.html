@@ -3135,6 +3135,12 @@
     }
 
     function initializeSortControlsForPalette(palette) {
+      // Check if sort controls are already initialized to prevent duplicate event listeners
+      if (palette.dataset.sortControlsInitialized === 'true') {
+        console.log('Sort controls already initialized for this palette, skipping...');
+        return;
+      }
+      
       const sortControls = palette.querySelector('.sort-controls');
       const sortBracket = sortControls.querySelector('.sort-bracket');
       const sortButtons = sortBracket.querySelectorAll('.sort-btn');
@@ -3163,9 +3169,19 @@
           updateSortTooltipPosition(e);
         });
       });
+      
+      // Mark this palette as having initialized sort controls to prevent duplicate initialization
+      palette.dataset.sortControlsInitialized = 'true';
+      console.log('Sort controls initialization complete for palette');
     }
 
     function initializeDeleteControlsForPalette(palette) {
+      // Check if delete controls are already initialized to prevent duplicate event listeners
+      if (palette.dataset.deleteControlsInitialized === 'true') {
+        console.log('Delete controls already initialized for this palette, skipping...');
+        return;
+      }
+      
       const deleteControls = palette.querySelector('.delete-controls');
       if (!deleteControls) {
         console.error('Delete controls not found in palette:', palette);
@@ -3222,13 +3238,27 @@
           resetDeleteButton();
         }
       });
+      
+      // Mark this palette as having initialized delete controls to prevent duplicate initialization
+      palette.dataset.deleteControlsInitialized = 'true';
+      console.log('Delete controls initialization complete for palette');
     }
 
     function initializeLockControlsForPalette(palette) {
-      console.log('Initializing lock controls for palette:', palette);
+      // Check if lock controls are already initialized to prevent duplicate event listeners
+      if (palette.dataset.lockControlsInitialized === 'true') {
+        console.log('Lock controls already initialized for this palette, skipping...');
+        return;
+      }
+      
+      console.log('=== initializeLockControlsForPalette called ===');
+      console.log('Palette element:', palette);
+      console.log('Palette HTML:', palette.outerHTML.substring(0, 200) + '...');
+      
       const lockControls = palette.querySelector('.lock-controls');
       if (!lockControls) {
         console.error('Lock controls not found in palette:', palette);
+        console.log('Available elements in palette:', Array.from(palette.children).map(el => el.className));
         return;
       }
       console.log('Found lock controls:', lockControls);
@@ -3236,12 +3266,17 @@
       const lockMainBtn = lockControls.querySelector('.lock-main-btn');
       if (!lockMainBtn) {
         console.error('Lock main button not found in lock controls:', lockControls);
+        console.log('Available elements in lock controls:', Array.from(lockControls.children).map(el => el.className));
         return;
       }
       console.log('Found lock main button:', lockMainBtn);
+      console.log('Button HTML:', lockMainBtn.outerHTML);
       
       // Check if palette is already locked (from storage)
       const isLocked = palette.dataset.locked === 'true';
+      console.log('Initial palette lock state:', isLocked);
+      console.log('Palette dataset:', palette.dataset);
+      
       if (isLocked) {
         lockMainBtn.classList.add('locked');
         lockMainBtn.innerHTML = '🔒';
@@ -3282,7 +3317,34 @@
         
         // Save to storage
         savePalettesToStorage();
+        
+        // Debug: log the current state after update
+        console.log('Palette lock state after update:', palette.dataset.locked);
+        console.log('Button classes after update:', lockMainBtn.className);
+        console.log('Button innerHTML after update:', lockMainBtn.innerHTML);
       });
+      
+      // Debug: verify event listener was attached
+      console.log('Event listener attached to lock button. Button properties:', {
+        disabled: lockMainBtn.disabled,
+        className: lockMainBtn.className,
+        innerHTML: lockMainBtn.innerHTML,
+        dataset: lockMainBtn.dataset
+      });
+      
+      // Test: add a simple test to verify button is clickable
+      lockMainBtn.addEventListener('mouseenter', () => {
+        console.log('Lock button mouse enter detected');
+      });
+      
+      // Test: verify the button element is properly accessible
+      console.log('Lock button element reference:', lockMainBtn);
+      console.log('Lock button parent:', lockMainBtn.parentElement);
+      console.log('Lock button is connected to DOM:', lockMainBtn.isConnected);
+      
+      // Mark this palette as having initialized lock controls to prevent duplicate initialization
+      palette.dataset.lockControlsInitialized = 'true';
+      console.log('Lock controls initialization complete for palette');
     }
 
     function updatePaletteButtonStates(palette, isLocked) {
@@ -3293,13 +3355,30 @@
       const deleteButton = palette.querySelector('.delete-main-btn');
       const sortButtons = palette.querySelectorAll('.sort-btn');
       
+      // Get all individual swatch control buttons
+      const swatchDeleteButtons = palette.querySelectorAll('.swatch-control-btn.delete');
+      const swatchRandomizeButtons = palette.querySelectorAll('.swatch-control-btn.randomize');
+      
       if (isLocked) {
-        // Disable all buttons when locked
+        // Disable most buttons when locked, but keep copy button enabled
         if (addButton) addButton.disabled = true;
         if (randomizeButton) randomizeButton.disabled = true;
-        if (copyButton) copyButton.disabled = true;
+        // Copy button remains enabled even when locked
+        if (copyButton) copyButton.disabled = false;
         if (deleteButton) deleteButton.disabled = true;
         sortButtons.forEach(btn => btn.disabled = true);
+        
+        // Disable individual swatch delete and randomize buttons
+        swatchDeleteButtons.forEach(btn => {
+          btn.disabled = true;
+          btn.style.opacity = '0.4';
+          btn.style.cursor = 'not-allowed';
+        });
+        swatchRandomizeButtons.forEach(btn => {
+          btn.disabled = true;
+          btn.style.opacity = '0.4';
+          btn.style.cursor = 'not-allowed';
+        });
       } else {
         // Enable all buttons when unlocked
         if (addButton) addButton.disabled = false;
@@ -3307,6 +3386,18 @@
         if (copyButton) copyButton.disabled = false;
         if (deleteButton) deleteButton.disabled = false;
         sortButtons.forEach(btn => btn.disabled = false);
+        
+        // Enable individual swatch delete and randomize buttons
+        swatchDeleteButtons.forEach(btn => {
+          btn.disabled = false;
+          btn.style.opacity = '';
+          btn.style.cursor = '';
+        });
+        swatchRandomizeButtons.forEach(btn => {
+          btn.disabled = false;
+          btn.style.opacity = '';
+          btn.style.cursor = '';
+        });
       }
     }
 
@@ -4607,6 +4698,17 @@
       randomizeBtn.title = 'Randomize color';
       randomizeBtn.addEventListener('click', handleRandomizeSwatch);
       
+      // Check if palette is locked and disable delete/randomize buttons accordingly
+      const palette = swatch.closest('.palette');
+      if (palette && palette.dataset.locked === 'true') {
+        deleteBtn.disabled = true;
+        deleteBtn.style.opacity = '0.4';
+        deleteBtn.style.cursor = 'not-allowed';
+        randomizeBtn.disabled = true;
+        randomizeBtn.style.opacity = '0.4';
+        randomizeBtn.style.cursor = 'not-allowed';
+      }
+      
       // Add buttons to container
       controlsContainer.appendChild(deleteBtn);
       controlsContainer.appendChild(lockBtn);
@@ -4677,6 +4779,16 @@
       const palette = swatch.closest('.palette');
       
       if (swatch && palette) {
+        // Check if palette is locked
+        if (palette.dataset.locked === 'true') {
+          // Show brief feedback that palette is locked
+          button.style.transform = 'scale(1.2)';
+          setTimeout(() => {
+            button.style.transform = 'scale(1)';
+          }, 200);
+          return;
+        }
+        
         const swatchesContainer = palette.querySelector('.swatches');
         
         // Use the pre-frozen state data
@@ -4785,8 +4897,19 @@
       
       const button = event.currentTarget;
       const swatch = button.closest('.swatch');
+      const palette = swatch.closest('.palette');
       
-      if (swatch) {
+      if (swatch && palette) {
+        // Check if palette is locked
+        if (palette.dataset.locked === 'true') {
+          // Show brief feedback that palette is locked
+          button.style.transform = 'scale(1.2)';
+          setTimeout(() => {
+            button.style.transform = 'scale(1)';
+          }, 200);
+          return;
+        }
+        
         // Check if swatch is locked
         if (swatch.dataset.locked === 'true') {
           // Show brief feedback that swatch is locked
